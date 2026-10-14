@@ -1,5 +1,6 @@
 import { redirect, type ActionFunctionArgs } from "react-router-dom";
 import { login, register } from "../services/auth.service";
+import { setRegisteredFlash } from "./flash-messages";
 
 export interface FormActionResult<Field extends string> {
     fieldErrors?: Partial<Record<Field, string>>;
@@ -82,5 +83,7 @@ export async function registerAction({request}: ActionFunctionArgs): Promise<For
     }
 
     // register() signs the user out after creating the profile, so they must log in after the account creation.
-    return redirect('/login?registered=1');
+    // The confirmation message travels as a one-time flash message (read by loginLoader), not in the URL.
+    setRegisteredFlash();
+    return redirect('/login');
 }

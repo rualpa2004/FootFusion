@@ -1,5 +1,5 @@
 import { Mail } from "lucide-react";
-import { Form, Link, useActionData, useNavigation, useSearchParams } from "react-router-dom";
+import { Form, Link, useActionData, useLoaderData, useNavigation } from "react-router-dom";
 import { AuthCard } from "../components/auth/AuthCard";
 import { FormAlert } from "../components/form/FormAlert";
 import { FormField } from "../components/form/FormField";
@@ -7,14 +7,14 @@ import { PasswordInput } from "../components/form/PasswordInput";
 import { SubmitButton } from "../components/form/SubmitButton";
 import { TextInput } from "../components/form/TextInput";
 import type { loginAction } from "../router/actions";
+import type { loginLoader } from "../router/loaders";
 
 export function LoginPage() {
     // Errors returned by loginAction after a failed submission (undefined before submitting).
     const actionData = useActionData<typeof loginAction>();
     const isSubmitting = useNavigation().state === 'submitting';
-    // Set by registerAction when it redirects here after creating the account.
-    const [searchParams] = useSearchParams();
-    const justRegistered = searchParams.get('registered') === '1';
+    // True only right after registerAction redirects here (one-time flash message read by loginLoader).
+    const {justRegistered} = useLoaderData<typeof loginLoader>();
 
     const fieldErrors = actionData?.fieldErrors;
 

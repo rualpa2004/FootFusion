@@ -2,6 +2,7 @@ import { redirect } from "react-router-dom";
 import { auth } from "../config/firebase";
 import { getProfile, logout } from "../services/auth.service";
 import { getDashboardData, getManagerSummary } from "../services/dashboard.service";
+import { consumeRegisteredFlash } from "./flash-messages";
 
 /**
  * Loader of the protected layout (AppLayout). Runs before any protected page renders.
@@ -37,6 +38,11 @@ export async function redirectIfAuthenticatedLoader() {
         throw redirect('/home');
     }
     return null;
+}
+
+/** Loader of LoginPage: tells the page whether to show the "account created" message (only once). */
+export function loginLoader() {
+    return {justRegistered: consumeRegisteredFlash()};
 }
 
 /** Loader of HomePage: initial data for the dashboard cards. */

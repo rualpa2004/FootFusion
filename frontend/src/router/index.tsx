@@ -8,7 +8,7 @@ import { LandingPage } from "../pages/LandingPage";
 import { LoginPage } from "../pages/LoginPage";
 import { RegisterPage } from "../pages/RegisterPage";
 import { loginAction, registerAction } from "./actions";
-import { homeLoader, protectedLoader, redirectIfAuthenticatedLoader } from "./loaders";
+import { homeLoader, loginLoader, protectedLoader, redirectIfAuthenticatedLoader } from "./loaders";
 import { PROTECTED_ROUTE_ID } from "./route-ids";
 
 export const router = createBrowserRouter([
@@ -23,7 +23,7 @@ export const router = createBrowserRouter([
                 element: <AuthLayout/>,
                 loader: redirectIfAuthenticatedLoader,
                 children: [
-                    {path: 'login', element: <LoginPage/>, action: loginAction},
+                    {path: 'login', element: <LoginPage/>, loader: loginLoader, action: loginAction},
                     {path: 'register', element: <RegisterPage/>, action: registerAction}
                 ]
             },
