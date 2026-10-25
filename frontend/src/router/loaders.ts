@@ -1,19 +1,26 @@
 import { redirect } from "react-router-dom";
 import { auth } from "../config/firebase";
-import { getProfile, logout } from "../services/auth.service";
+import { discardIncompleteAccount, getProfile, hasProfile, isProfileMissingError, logout } from "../services/auth.service";
 import { getDashboardData, getManagerSummary } from "../services/dashboard.service";
 import { consumeRegisteredFlash } from "./flash-messages";
+import { clearGoogleSignUpPending, isGoogleSignUpPending } from "./google-sign-up";
 
-/**
- * Loader of the protected layout (AppLayout). Runs before any protected page renders.
- * Waits for Firebase to restore the session, loads the user profile from the API and
- * redirects to /login when there is no valid session.
- */
+async function discardAbandonedSignUp(): Promise<void> {
+    clearGoogleSignUpPending();
+    await discardIncompleteAccount();
+}
+
+
 export async function protectedLoader() {
-    // On a page reload auth.currentUser is null until Firebase restores the persisted session.
     await auth.authStateReady();
+    const user = auth.currentUser;
 
-    if (!auth.currentUser) {
+    if (!user) {
+        throw redirect('/login');
+    }
+    
+    if (!user.emailVerified) {
+        await logout();
         throw redirect('/login');
     }
 
@@ -22,27 +29,75 @@ export async function protectedLoader() {
         const summary = await getManagerSummary();
         return {profile, summary};
     } catch (error) {
-        // A Firebase user without a profile in our API (or an API failure) is not a usable session.
-        // Signing out also prevents a redirect loop with redirectIfAuthenticatedLoader.
         console.error('Failed to load the authenticated user profile', error);
-        await logout();
+        if (isProfileMissingError(error)) {
+            await discardAbandonedSignUp();
+        } else {
+            await logout();
+        }
         throw redirect('/login');
     }
 }
 
-/** Loader of the auth layout (AuthLayout): users with a session are sent straight to /home. */
 export async function redirectIfAuthenticatedLoader() {
     await auth.authStateReady();
+    const user = auth.currentUser;
 
-    if (auth.currentUser) {
-        throw redirect('/home');
+    if (!user) {
+        return null;
     }
-    return null;
+    if (!user.emailVerified) {
+        await logout();
+        return null;
+    }
+
+    let profileExists: boolean;
+    try {
+        profileExists = await hasProfile();
+    } catch {
+        await logout();
+        return null;
+    }
+
+    if (!profileExists) {
+        // The user left /completar-perfil without choosing a name.
+        await discardAbandonedSignUp();
+        return null;
+    }
+    throw redirect('/home');
 }
 
-/** Loader of LoginPage: tells the page whether to show the "account created" message (only once). */
+export async function completeProfileLoader() {
+    await auth.authStateReady();
+    const user = auth.currentUser;
+
+    if (!user) {
+        clearGoogleSignUpPending();
+        throw redirect('/login');
+    }
+
+    if (!isGoogleSignUpPending()) {
+        let profileExists: boolean;
+        try {
+            profileExists = await hasProfile();
+        } catch {
+            await logout();
+            throw redirect('/login');
+        }
+
+        if (profileExists) {
+            throw redirect('/home');
+        }
+        await discardAbandonedSignUp();
+        throw redirect('/login');
+    }
+
+    // The Google photo is only displayed here, it is never saved in FootFusion.
+    return {email: user.email ?? '', photoUrl: user.photoURL ?? undefined};
+}
+
 export function loginLoader() {
-    return {justRegistered: consumeRegisteredFlash()};
+    return {registeredEmail: consumeRegisteredFlash()};
 }
 
 /** Loader of HomePage: initial data for the dashboard cards. */
