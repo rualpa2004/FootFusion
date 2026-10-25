@@ -1,5 +1,6 @@
-import { Bell, LogOut } from "lucide-react";
+import { Bell } from "lucide-react";
 import { useManagerSummary } from "../../hooks/useManagerSummary";
+import { LogoutButton } from "./LogoutButton";
 
 interface PageHeaderProps {
     title: string;
@@ -31,16 +32,7 @@ export function PageHeader({title, subtitle}: PageHeaderProps) {
                 >
                     <Bell className="size-5 text-white" aria-hidden/>
                 </button>
-                {/* TODO: logout. Will become a <Form method="post" action="/logout"> pointing to a route
-                    whose action calls logout() from auth.service and returns redirect('/login'). */}
-                <button
-                    type="button"
-                    disabled
-                    aria-label="Cerrar sesión"
-                    className="flex size-10 items-center justify-center rounded-lg border border-line bg-surface"
-                >
-                    <LogOut className="size-5 text-white" aria-hidden/>
-                </button>
+                <LogoutButton/>
             </div>
         </header>
     );
