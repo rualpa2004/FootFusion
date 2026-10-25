@@ -5,13 +5,24 @@ import { describe, expect, it, vi } from 'vitest';
 import { RegisterPage } from '../../../src/pages/RegisterPage';
 import { renderWithRouter } from '../../helpers/render-with-router';
 
+vi.mock('../../../src/services/auth.service', () => ({
+    signInWithGoogle: vi.fn()
+}));
+
+/** The <details> element that folds the email form. */
+function getEmailFormToggle() {
+    return screen.getByText('Registrarse con correo').closest('details')!;
+}
+
 function renderRegisterPage(action: ActionFunction = vi.fn(async () => null)) {
     renderWithRouter({path: '/register', element: <RegisterPage/>, action});
     return {action};
 }
 
 async function fillForm({acceptTerms = true} = {}) {
-    await userEvent.type(await screen.findByLabelText('Nombre de mánager'), 'ApexManager');
+    // The email form starts folded: unfold it first, as the user would.
+    await userEvent.click(await screen.findByText('Registrarse con correo'));
+    await userEvent.type(screen.getByLabelText('Nombre de mánager'), 'ApexManager');
     await userEvent.type(screen.getByLabelText('Correo electrónico'), 'apex@example.com');
     await userEvent.type(screen.getByLabelText('Contraseña'), 'secret123');
     await userEvent.type(screen.getByLabelText('Confirmar contraseña'), 'secret123');
@@ -36,6 +47,27 @@ describe('RegisterPage', () => {
         expect(screen.getByLabelText('Confirmar contraseña')).toHaveAttribute('type', 'password');
         expect(screen.getByRole('checkbox')).not.toBeChecked();
         expect(screen.getByRole('button', {name: 'Crear cuenta'})).toBeEnabled();
+    });
+
+    it('starts with the email form folded and Google offered below', async () => {
+        // Expected: the <details> closed, and the "o por Google" separator with "Registrarse con Google".
+        renderRegisterPage();
+
+        await screen.findByRole('heading', {name: 'Crea tu cuenta'});
+        expect(getEmailFormToggle()).not.toHaveAttribute('open');
+        expect(screen.getByText('o por Google')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Registrarse con Google'})).toBeInTheDocument();
+    });
+
+    it('unfolds the email form when "Registrarse con correo" is clicked', async () => {
+        // Expected: the <details> open after the click, and closed again after a second click.
+        renderRegisterPage();
+
+        await userEvent.click(await screen.findByText('Registrarse con correo'));
+        expect(getEmailFormToggle()).toHaveAttribute('open');
+
+        await userEvent.click(screen.getByText('Registrarse con correo'));
+        expect(getEmailFormToggle()).not.toHaveAttribute('open');
     });
 
     it('links to the login page', async () => {
@@ -113,6 +145,8 @@ describe('RegisterPage', () => {
         expect(screen.queryByText('Usa 8 o más caracteres, incluyendo una letra y un número.')).not.toBeInTheDocument();
         expect(screen.getByLabelText('Nombre de mánager')).toHaveAttribute('aria-invalid', 'true');
         expect(screen.getByLabelText('Correo electrónico')).toHaveAttribute('aria-invalid', 'false');
+        // The form is rendered unfolded so the errors are visible.
+        expect(getEmailFormToggle()).toHaveAttribute('open');
     });
 
     it('shows the form error returned by the action', async () => {

@@ -32,11 +32,17 @@ export function formatTimeRemaining(isoDate: string, now: number = Date.now()): 
     return `${days}d ${hours}h ${minutes}m`;
 }
 
-export function getInitials(name: string): string {
-    return name
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((word) => word[0]!.toUpperCase())
-        .join('');
+/**
+ * Hides most of the part before the "@" so the address can be shown in notices without exposing it:
+ * keeps its first and last characters ("pepe@gmail.com" -> "p***e@gmail.com").
+ */
+export function maskEmail(email: string): string {
+    const atIndex = email.lastIndexOf('@');
+    if (atIndex <= 0) {
+        return email;
+    }
+
+    const localPart = email.slice(0, atIndex);
+    const lastCharacter = localPart.length > 1 ? localPart[localPart.length - 1] : '';
+    return `${localPart[0]}***${lastCharacter}${email.slice(atIndex)}`;
 }

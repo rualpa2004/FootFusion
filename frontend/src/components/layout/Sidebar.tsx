@@ -5,6 +5,7 @@ import { useManagerSummary } from "../../hooks/useManagerSummary";
 import { formatNumber } from "../../utils/format";
 import { BrandLogo } from "../BrandLogo";
 import { UserAvatar } from "../UserAvatar";
+import { LogoutButton } from "./LogoutButton";
 
 interface NavItem {
     label: string;
@@ -72,6 +73,7 @@ export function Sidebar() {
                     <span className="truncate text-sm font-semibold text-white">{profile.name}</span>
                     <span className="text-[11px] text-primary">Puesto #{formatNumber(summary.globalRank)}</span>
                 </div>
+                <LogoutButton size="sm"/>
             </div>
         </aside>
     );

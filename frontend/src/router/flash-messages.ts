@@ -4,23 +4,23 @@
 const REGISTERED_FLASH_KEY = 'footfusion:justRegistered';
 
 /** Marks that an account was just created, so the login page can show the confirmation once. */
-export function setRegisteredFlash(): void {
+export function setRegisteredFlash(maskedEmail: string): void {
     try {
-        sessionStorage.setItem(REGISTERED_FLASH_KEY, '1');
+        sessionStorage.setItem(REGISTERED_FLASH_KEY, maskedEmail);
     } catch (error) {
         // Storage can be unavailable (e.g. blocked by the browser): the message is optional, so it is skipped.
         console.warn('Could not store the registered flash message', error);
     }
 }
 
-/** Returns whether the "account created" message must be shown and removes it, so it is only shown once. */
-export function consumeRegisteredFlash(): boolean {
+/** Returns the masked email of the account just created (null when there is no message to show) and removes it, so the message is only shown once. */
+export function consumeRegisteredFlash(): string | null {
     try {
-        const isSet = sessionStorage.getItem(REGISTERED_FLASH_KEY) === '1';
+        const maskedEmail = sessionStorage.getItem(REGISTERED_FLASH_KEY);
         sessionStorage.removeItem(REGISTERED_FLASH_KEY);
-        return isSet;
+        return maskedEmail || null;
     } catch (error) {
         console.warn('Could not read the registered flash message', error);
-        return false;
+        return null;
     }
 }

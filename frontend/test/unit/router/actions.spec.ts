@@ -1,13 +1,42 @@
 import type { ActionFunctionArgs } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { loginAction, registerAction } from '../../../src/router/actions';
+import {
+    CANCEL_SIGN_UP_INTENT,
+    completeProfileAction,
+    googleSignInAction,
+    loginAction,
+    logoutAction,
+    registerAction,
+    RESEND_VERIFICATION_INTENT
+} from '../../../src/router/actions';
 import { setRegisteredFlash } from '../../../src/router/flash-messages';
-import { login, register } from '../../../src/services/auth.service';
+import {
+    clearGoogleSignUpPending,
+    isGoogleSignUpPending,
+    markGoogleSignUpPending
+} from '../../../src/router/google-sign-up';
+import {
+    createProfile,
+    discardIncompleteAccount,
+    EmailNotVerifiedError,
+    hasProfile,
+    login,
+    logout,
+    register,
+    resendVerificationEmail
+} from '../../../src/services/auth.service';
 
 // The actions are tested in isolation: the auth service and the flash message are test doubles.
 vi.mock('../../../src/services/auth.service', () => ({
     login: vi.fn(),
-    register: vi.fn()
+    logout: vi.fn(),
+    register: vi.fn(),
+    resendVerificationEmail: vi.fn(),
+    hasProfile: vi.fn(),
+    createProfile: vi.fn(),
+    discardIncompleteAccount: vi.fn(),
+    getAuthErrorMessage: (code: string) => `message for ${code}`,
+    EmailNotVerifiedError: class extends Error {}
 }));
 vi.mock('../../../src/router/flash-messages', () => ({
     setRegisteredFlash: vi.fn()
@@ -109,6 +138,60 @@ describe('loginAction', () => {
 
         expect(result).toEqual({formError: 'Ha ocurrido un error inesperado.'});
     });
+
+    it('blocks the login and returns the verification notice when the email is not verified', async () => {
+        // Expected: no redirect, and verification = { status: 'pending', email masked }.
+        vi.mocked(login).mockRejectedValue(new EmailNotVerifiedError());
+
+        const result = await loginAction(submit(VALID_LOGIN));
+
+        expect(result).toEqual({verification: {status: 'pending', email: 'a***x@example.com'}});
+    });
+
+    describe('when resending the verification email', () => {
+        const RESEND = {...VALID_LOGIN, intent: RESEND_VERIFICATION_INTENT};
+
+        it('sends it with the typed credentials and returns the "resent" notice', async () => {
+            // Expected: resendVerificationEmail(email, password) called, login() not called, and verification = { status: 'resent', email masked, sentAt: now }.
+            vi.mocked(resendVerificationEmail).mockResolvedValue('sent');
+            vi.spyOn(Date, 'now').mockReturnValue(1_000);
+
+            const result = await loginAction(submit(RESEND));
+
+            expect(resendVerificationEmail).toHaveBeenCalledWith('apex@example.com', 'secret123');
+            expect(login).not.toHaveBeenCalled();
+            expect(result).toEqual({verification: {status: 'resent', email: 'a***x@example.com', sentAt: 1_000}});
+        });
+
+        it('tells the user when the email is already verified', async () => {
+            // Expected: verification = { status: 'alreadyVerified', email masked }.
+            vi.mocked(resendVerificationEmail).mockResolvedValue('alreadyVerified');
+
+            const result = await loginAction(submit(RESEND));
+
+            expect(result).toEqual({verification: {status: 'alreadyVerified', email: 'a***x@example.com'}});
+        });
+
+        it('returns the error and keeps the "not verified" notice when it fails', async () => {
+            // Expected: formError with the service message (e.g. too many attempts) and the pending notice.
+            vi.mocked(resendVerificationEmail).mockRejectedValue(new Error('Demasiados intentos. Inténtalo más tarde.'));
+
+            const result = await loginAction(submit(RESEND));
+
+            expect(result).toEqual({
+                formError: 'Demasiados intentos. Inténtalo más tarde.',
+                verification: {status: 'pending', email: 'a***x@example.com'}
+            });
+        });
+
+        it('validates the fields before resending', async () => {
+            // Expected: fieldErrors.password and the service not called.
+            const result = await loginAction(submit({...RESEND, password: ''}));
+
+            expect(result).toEqual({fieldErrors: {password: 'Introduce tu contraseña.'}});
+            expect(resendVerificationEmail).not.toHaveBeenCalled();
+        });
+    });
 });
 
 describe('registerAction', () => {
@@ -183,11 +266,12 @@ describe('registerAction', () => {
 
     it('registers, stores the flash message and redirects to /login with valid data', async () => {
         // Expected: register(name, email, password) called with trimmed name/email, the one-time
-        // "account created" flash message stored, and a 302 redirect to /login without query parameters.
+        // "account created" flash message stored with the masked email (never the full one),
+        // and a 302 redirect to /login without query parameters.
         const result = await registerAction(submit({...VALID_REGISTER, name: '  ApexManager ', email: ' apex@example.com '}));
 
         expect(register).toHaveBeenCalledWith('ApexManager', 'apex@example.com', 'secret123');
-        expect(setRegisteredFlash).toHaveBeenCalledTimes(1);
+        expect(setRegisteredFlash).toHaveBeenCalledWith('a***x@example.com');
         expectRedirect(result, '/login');
     });
 
@@ -199,5 +283,110 @@ describe('registerAction', () => {
 
         expect(result).toEqual({formError: 'Este correo ya está registrado.'});
         expect(setRegisteredFlash).not.toHaveBeenCalled();
+    });
+});
+
+describe('googleSignInAction', () => {
+    beforeEach(() => {
+        clearGoogleSignUpPending();
+        vi.mocked(logout).mockResolvedValue(undefined);
+    });
+
+    it('redirects to /home when the Google account already has a profile', async () => {
+        // Expected: a 302 redirect to /home and no pending sign-up.
+        vi.mocked(hasProfile).mockResolvedValue(true);
+
+        const result = await googleSignInAction(submit({}));
+
+        expectRedirect(result, '/home');
+        expect(isGoogleSignUpPending()).toBe(false);
+    });
+
+    it('marks the sign-up as pending and redirects to /completar-perfil on a first sign-in', async () => {
+        // Expected: the pending mark set (so /completar-perfil can be shown) and a redirect there.
+        vi.mocked(hasProfile).mockResolvedValue(false);
+
+        const result = await googleSignInAction(submit({}));
+
+        expectRedirect(result, '/completar-perfil');
+        expect(isGoogleSignUpPending()).toBe(true);
+    });
+
+    it('signs out and returns the error when the profile cannot be checked', async () => {
+        // Expected: logout() called and formError with the service message.
+        vi.mocked(hasProfile).mockRejectedValue(new Error('Ha ocurrido un error inesperado.'));
+
+        const result = await googleSignInAction(submit({}));
+
+        expect(logout).toHaveBeenCalledTimes(1);
+        expect(result).toEqual({formError: 'Ha ocurrido un error inesperado.'});
+    });
+
+    it('translates the error of the Google window sent by the button', async () => {
+        // Expected: formError from getAuthErrorMessage(code) and the API is not called.
+        const result = await googleSignInAction(submit({popupErrorCode: 'auth/popup-blocked'}));
+
+        expect(result).toEqual({formError: 'message for auth/popup-blocked'});
+        expect(hasProfile).not.toHaveBeenCalled();
+    });
+});
+
+describe('completeProfileAction', () => {
+    beforeEach(() => {
+        markGoogleSignUpPending();
+        vi.mocked(discardIncompleteAccount).mockResolvedValue(undefined);
+    });
+
+    it('requires the manager name', async () => {
+        // Expected: fieldErrors.name and createProfile() not called.
+        const result = await completeProfileAction(submit({name: '   '}));
+
+        expect(result).toEqual({fieldErrors: {name: 'Elige un nombre de mánager.'}});
+        expect(createProfile).not.toHaveBeenCalled();
+    });
+
+    it('creates the profile with the trimmed name and redirects to /home', async () => {
+        // Expected: createProfile("ApexManager"), the pending mark cleared and a redirect to /home.
+        vi.mocked(createProfile).mockResolvedValue({
+            id: 1, name: 'ApexManager', email: 'apex@gmail.com', role: 'USER', registerDate: '2026-10-20'
+        });
+
+        const result = await completeProfileAction(submit({name: ' ApexManager '}));
+
+        expect(createProfile).toHaveBeenCalledWith('ApexManager');
+        expect(isGoogleSignUpPending()).toBe(false);
+        expectRedirect(result, '/home');
+    });
+
+    it('returns the service error and keeps the sign-up pending', async () => {
+        // Expected: formError with the message, and still pending so the user can try again.
+        vi.mocked(createProfile).mockRejectedValue(new Error('Ha ocurrido un error inesperado.'));
+
+        const result = await completeProfileAction(submit({name: 'ApexManager'}));
+
+        expect(result).toEqual({formError: 'Ha ocurrido un error inesperado.'});
+        expect(isGoogleSignUpPending()).toBe(true);
+    });
+
+    it('deletes the account and goes back to /login with "Usar otra cuenta"', async () => {
+        // Expected: the incomplete account discarded, no profile created, the mark cleared and a redirect to /login.
+        const result = await completeProfileAction(submit({intent: CANCEL_SIGN_UP_INTENT}));
+
+        expect(discardIncompleteAccount).toHaveBeenCalledTimes(1);
+        expect(createProfile).not.toHaveBeenCalled();
+        expect(isGoogleSignUpPending()).toBe(false);
+        expectRedirect(result, '/login');
+    });
+});
+
+describe('logoutAction', () => {
+    it('signs out and redirects to /login', async () => {
+        // Expected: logout() called and a 302 redirect to /login (without any message).
+        vi.mocked(logout).mockResolvedValue(undefined);
+
+        const result = await logoutAction();
+
+        expect(logout).toHaveBeenCalledTimes(1);
+        expectRedirect(result, '/login');
     });
 });
