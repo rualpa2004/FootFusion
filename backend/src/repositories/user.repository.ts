@@ -23,6 +23,11 @@ export class UserRepository {
         return this.repository.findOne({where: {firebaseUid}});
     }
 
+    /** Id and Firebase uid of every user, to match them with the Firebase accounts without loading whole rows. */
+    findFirebaseIdentities(): Promise<Pick<User, 'id' | 'firebaseUid'>[]> {
+        return this.repository.find({select: {id: true, firebaseUid: true}});
+    }
+
     findByEmail(email: string): Promise<User | null> {
         return this.repository.findOne({where: {email}});
     }
