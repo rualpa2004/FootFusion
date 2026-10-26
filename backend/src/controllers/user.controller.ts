@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import { AllowUnverifiedEmail } from "../auth/allow-unverified-email.decorator";
 import { type AuthenticatedRequest, FirebaseAuthGuard } from "../auth/firebase-auth.guard";
 import { UserService } from "../services/user.service";
 import { CreateUserDTO } from "../dtos/user/create-user.dto";
@@ -12,6 +13,7 @@ export class UserController {
     constructor (private readonly userService: UserService) {}
 
     @Post()
+    @AllowUnverifiedEmail()     //Allows the profile creation while the email is not verified.
     register(
         @Body() dto: CreateUserDTO,
         @Req() req: AuthenticatedRequest
