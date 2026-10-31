@@ -98,5 +98,5 @@ jobs:
       - name: Instalar dependencias y ejecutar tests
         working-directory: ./etl
         run: |
-          pip install -r requirements.txt
+          pip install --only-binary :all: --require-hashes -r requirements.txt
           python -m pytest
