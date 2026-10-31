@@ -1,3 +1,4 @@
+import pytest
 from config.competitions import COMPETITIONS
 from scripts import sync_standings
 
@@ -39,6 +40,33 @@ def test_previous_season_uses_the_cache_the_second_time(monkeypatch, tmp_path):
 
     assert len(requests) == 1
     assert len(saved) == 2
+
+def prepare_current_matchday(monkeypatch, tmp_path, current_matchday):
+    requests, saved = prepare(monkeypatch, tmp_path)
+    response = {**FINAL_RESPONSE, "season": {"currentMatchday": current_matchday}}
+    monkeypatch.setattr(sync_standings.client, "get_standings",
+                        lambda code, season, matchday = None: requests.append((code, season, matchday)) or response)
+    monkeypatch.setattr(sync_standings, "find_saved_matchdays", lambda competition_id, season: set())
+    return requests, saved
+
+def test_current_matchday_above_the_competition_matchdays_is_limited(monkeypatch, tmp_path):
+    # Expected: a current matchday of 100000 only requests matchdays 1 to 38 of La Liga.
+    requests, saved = prepare_current_matchday(monkeypatch, tmp_path, 100000)
+
+    sync_standings.sync_competition(LA_LIGA, 2025)
+
+    assert [matchday for _, _, matchday in requests[1:]] == list(range(1, 39))
+    assert len(saved) == 38
+
+def test_current_matchday_that_is_not_a_number_stops_the_competition(monkeypatch, tmp_path):
+    # Expected: a current matchday sent as text raises an error before any matchday is requested.
+    requests, saved = prepare_current_matchday(monkeypatch, tmp_path, "38")
+
+    with pytest.raises(TypeError):
+        sync_standings.sync_competition(LA_LIGA, 2025)
+
+    assert requests == [("PD", 2025, None)]
+    assert saved == []
 
 def test_only_domestic_leagues_have_previous_season():
     # Expected: the five domestic leagues, not the Champions League.

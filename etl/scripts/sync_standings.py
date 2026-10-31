@@ -34,7 +34,11 @@ def _get_standings(competition, season, matchday = None):
 def sync_competition(competition, season):
     code = competition["footballdata_code"]
     # The response without matchday says which matchday the season has reached.
-    last_matchday = _get_standings(competition, season)["season"]["currentMatchday"]
+    current_matchday = _get_standings(competition, season)["season"]["currentMatchday"]
+    # currentMatchday comes from outside the code (API or cache file), so it cannot set more iterations than the competition has.
+    last_matchday = min(competition["matchdays"], current_matchday)
+    if last_matchday != current_matchday:
+        print(f"{competition['name']}: jornada {current_matchday} no válida, se limita a {last_matchday}")
     saved = find_saved_matchdays(competition["highlightly_id"], season)
 
     for matchday in range(1, last_matchday + 1):
