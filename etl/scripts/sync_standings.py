@@ -44,9 +44,37 @@ def sync_competition(competition, season):
         save_standing(adapt_standing(response, competition["highlightly_id"], code, season, matchday))
     print(f"{competition['name']}: clasificaciones hasta la jornada {last_matchday}")
 
+def _get_final_standings(competition, season):
+    # A finished season answers with its final table when no matchday is given, so it is cached as "final".
+    path = _cache_path(competition, season, "final")
+    if os.path.exists(path):
+        with open(path, "r", encoding = "utf-8") as f:
+            return json.load(f)
+
+    response = client.get_standings(competition["footballdata_code"], season)
+    time.sleep(REQUEST_DELAY_SECONDS)
+    os.makedirs(os.path.dirname(path), exist_ok = True)
+    with open(path, "w", encoding = "utf-8") as f:
+        json.dump(response, f, ensure_ascii = False, indent = 2)
+    return response
+
+def sync_previous_season(competition, season):
+    """Final table of the previous season: initial market values and team strength of the first matchdays."""
+    previous_season = season - 1
+    response = _get_final_standings(competition, previous_season)
+    last_matchday = response["season"]["currentMatchday"]
+    save_standing(adapt_standing(response, competition["highlightly_id"], competition["footballdata_code"], previous_season, last_matchday))
+    print(f"{competition['name']}: clasificación final de {previous_season}-{str(season)[2:]} (jornada {last_matchday})")
+
+def is_domestic_league(competition):
+    # The Champions League has no table that ranks every team of a domestic league.
+    return competition["footballdata_code"] != "CL"
+
 def run(season):
     for competition in COMPETITIONS:
         sync_competition(competition, season)
+    for competition in filter(is_domestic_league, COMPETITIONS):
+        sync_previous_season(competition, season)
 
 if __name__ == "__main__":
     run(season = 2025)
