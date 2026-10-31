@@ -1,3 +1,6 @@
 etl/venv/
 etl/.env
 etl/cache
+# Python bytecode and pytest cache
+__pycache__/
+.pytest_cache/
