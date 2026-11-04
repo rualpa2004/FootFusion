@@ -61,7 +61,11 @@ def sync_player_stats(competition_name, fixture_data, match_id):
     events = _cached_or_requested(
         load_events_from_cache, save_events_to_cache, client.get_fixture_events, competition_name, fixture_id
     )
+    save_player_stats(fixture_data, match_id, box_score, events)
 
+def save_player_stats(fixture_data, match_id, box_score, events):
+    """Saves the stats of every player of a match from its box-score and events (no API requests)."""
+    fixture_id = fixture_data["id"]
     summaries, warnings = summarize_player_events(box_score, events, _expected_conceded(fixture_data))
     for warning in warnings:
         print(f" Aviso (partido {fixture_id}): {warning}")

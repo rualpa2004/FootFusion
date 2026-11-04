@@ -18,3 +18,11 @@ def is_match_synced(external_id):
 def mark_match_synced(external_id):
     db = get_database()
     db.matches.update_one({"external_id": external_id}, {"$set": {"stats_synced": True}})
+
+def find_all_matches():
+    db = get_database()
+    return list(db.matches.find({}))
+
+def unmark_match_synced(external_id):
+    db = get_database()
+    db.matches.update_one({"external_id": external_id}, {"$set": {"stats_synced": False}})
