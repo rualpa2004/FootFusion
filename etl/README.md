@@ -74,12 +74,18 @@ Los scripts se ejecutan como módulos desde la carpeta `etl`, por ejemplo:
 venv\Scripts\python -m scripts.sync_matchday
 ```
 
+Los scripts se ejecutan en el orden de la tabla:
+
 | Script | Función |
 |---|---|
 | `cache_fixtures` | Guarda en caché el calendario de partidos de cada competición |
 | `load_initial_data` | Carga inicial de competiciones, equipos y jugadores |
 | `normalize_positions` | Asigna a cada jugador su grupo de posición (POR, DEF, MED, DEL) |
 | `sync_standings` | Clasificaciones por jornada y clasificación final de la temporada anterior (solo football-data) |
+| `link_team_competitions` | Asigna a cada equipo todas sus competiciones (`competition_ids`) a partir de las clasificaciones, sin peticiones |
+| `init_market_values` | Valor de mercado inicial (base de la posición × fuerza del equipo) y primer registro del histórico `market_values` |
 | `sync_matchday` | Estadísticas y eventos de los partidos jugados; se ejecuta a diario |
+
+`repair_team_links` es de un solo uso: reconstruye desde la caché, sin peticiones, los vínculos de equipos y jugadores y las estadísticas guardadas con el emparejamiento de equipos anterior. Se ejecuta después de `link_team_competitions` y antes de `init_market_values`. Borra y vuelve a crear las estadísticas, así que conviene hacer antes una copia de seguridad de MongoDB (`mongodump`).
 
 Las respuestas de las APIs se guardan en la carpeta `cache` (no se sube al repositorio) para no repetir peticiones. El plan gratuito de Highlightly permite 100 peticiones al día; la ETL se detiene al llegar a `HIGHLIGHTLY_DAILY_LIMIT` (90 por defecto).

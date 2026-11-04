@@ -16,3 +16,7 @@ COMPETITIONS = [
 
 def is_relevant_round(competition, round_name):
     return bool(round_name) and re.match(competition["rounds"], round_name) is not None
+
+def is_domestic_league(competition):
+    # The Champions League has no table that ranks every team of a domestic league.
+    return competition["footballdata_code"] != "CL"

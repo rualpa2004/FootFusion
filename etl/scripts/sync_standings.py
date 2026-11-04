@@ -3,7 +3,7 @@ import os
 import time
 from adapters.standing_adapter import adapt_standing
 from clients.football_data_client import FootballDataClient
-from config.competitions import COMPETITIONS
+from config.competitions import COMPETITIONS, is_domestic_league
 from repositories.standing_repository import find_saved_matchdays, save_standing
 
 CACHE_DIR = os.path.join("cache", "Standings")
@@ -69,10 +69,6 @@ def sync_previous_season(competition, season):
     last_matchday = response["season"]["currentMatchday"]
     save_standing(adapt_standing(response, competition["highlightly_id"], competition["footballdata_code"], previous_season, last_matchday))
     print(f"{competition['name']}: clasificación final de {previous_season}-{str(season)[2:]} (jornada {last_matchday})")
-
-def is_domestic_league(competition):
-    # The Champions League has no table that ranks every team of a domestic league.
-    return competition["footballdata_code"] != "CL"
 
 def run(season):
     for competition in COMPETITIONS:
