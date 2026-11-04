@@ -13,3 +13,7 @@ def save_standing(standing: Standing):
 def find_saved_matchdays(competition_id, season):
     db = get_database()
     return {doc["matchday"] for doc in db.standings.find({"competition_id": competition_id, "season": season}, {"matchday": 1})}
+
+def find_latest_standing(competition_id, season):
+    db = get_database()
+    return db.standings.find_one({"competition_id": competition_id, "season": season}, sort = [("matchday", -1)])

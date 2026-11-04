@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 @dataclass
 class Team:
@@ -6,7 +6,7 @@ class Team:
     name: str
     logo: str
     type: str
-    competition_id: int
+    competition_ids: list = field(default_factory = list)     # Highlightly ids; a team can play its league and the Champions League
     highlightly_id: int = None
     coach_name: str = None
     coach_nationality: str = None
