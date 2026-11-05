@@ -9,3 +9,7 @@ def save_player_match_stats(player_match_stats: PlayerMatchStats):
         {"$set": asdict(player_match_stats)},
         upsert = True
     )
+
+def delete_all_player_match_stats():
+    db = get_database()
+    return db.player_match_stats.delete_many({}).deleted_count
