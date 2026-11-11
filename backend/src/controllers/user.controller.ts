@@ -1,3 +1,4 @@
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { AllowUnverifiedEmail } from "../auth/allow-unverified-email.decorator";
 import { type AuthenticatedRequest, FirebaseAuthGuard } from "../auth/firebase-auth.guard";
@@ -7,6 +8,8 @@ import { UserResponseDTO } from "../dtos/user/user-response.dto";
 
 
 
+@ApiTags('users')
+@ApiBearerAuth()
 @Controller('users')
 @UseGuards(FirebaseAuthGuard)
 export class UserController {
