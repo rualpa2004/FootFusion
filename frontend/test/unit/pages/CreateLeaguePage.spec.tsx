@@ -6,6 +6,10 @@ import { CreateLeaguePage } from '../../../src/pages/CreateLeaguePage';
 import { COMPETITIONS, JOINED_LEAGUE } from '../../helpers/league-fixtures';
 import { renderWithRouter } from '../../helpers/render-with-router';
 
+// The real Firebase app is never initialised: without the .env keys (e.g. in GitHub Actions) it throws
+// auth/invalid-api-key as soon as api.client imports it.
+vi.mock('../../../src/config/firebase', () => ({auth: {currentUser: null, authStateReady: async () => {}}}));
+
 // Data of the protected layout (profile, gameweek) used by the page and its header.
 vi.mock('../../../src/hooks/useAuth', () => ({useAuth: () => ({profile: {id: 1, name: 'ApexManager'}})}));
 vi.mock('../../../src/hooks/useManagerSummary', () => ({useManagerSummary: () => ({globalRank: 1, currentGameweek: 24})}));

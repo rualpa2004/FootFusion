@@ -10,6 +10,8 @@ import { ApiError } from '../../../src/services/api.client';
 import { getLeague, getMyLeagues, getPlayedMatchdays } from '../../../src/services/league.service';
 import { LEAGUE_DETAIL, MY_LEAGUE } from '../../helpers/league-fixtures';
 
+vi.mock('../../../src/config/firebase', () => ({auth: {currentUser: null, authStateReady: async () => {}}}));
+
 vi.mock('../../../src/services/league.service', () => ({
     getMyLeagues: vi.fn(),
     getLeague: vi.fn(),

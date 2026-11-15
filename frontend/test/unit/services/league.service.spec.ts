@@ -12,6 +12,8 @@ import {
     renameLeague
 } from '../../../src/services/league.service';
 
+vi.mock('../../../src/config/firebase', () => ({auth: {currentUser: null, authStateReady: async () => {}}}));
+
 // Keeps the real ApiError class but replaces the HTTP call to the backend.
 vi.mock('../../../src/services/api.client', async (importOriginal) => ({
     ...(await importOriginal<typeof import('../../../src/services/api.client')>()),

@@ -7,6 +7,9 @@ import type { LeagueDetail } from '../../../src/services/league.service';
 import { LEAGUE_DETAIL, member } from '../../helpers/league-fixtures';
 import { renderWithRouter } from '../../helpers/render-with-router';
 
+//Explained in CreateLeaguePage.spec.tsx
+vi.mock('../../../src/config/firebase', () => ({auth: {currentUser: null, authStateReady: async () => {}}}));
+
 // The logged-in user is the one with id 1 (second in LEAGUE_DETAIL.members).
 vi.mock('../../../src/hooks/useAuth', () => ({useAuth: () => ({profile: {id: 1, name: 'Manager 1'}})}));
 vi.mock('../../../src/hooks/useManagerSummary', () => ({useManagerSummary: () => ({globalRank: 1, currentGameweek: 24})}));

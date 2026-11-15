@@ -10,6 +10,8 @@ import { ApiError } from '../../../src/services/api.client';
 import { createLeague, joinLeague, renameLeague } from '../../../src/services/league.service';
 import { JOINED_LEAGUE, LA_LIGA, PREMIER } from '../../helpers/league-fixtures';
 
+vi.mock('../../../src/config/firebase', () => ({auth: {currentUser: null, authStateReady: async () => {}}}));
+
 // The actions are tested in isolation: the league requests are test doubles. The error messages keep
 // the real translation, so the tests also check what the user reads.
 vi.mock('../../../src/services/league.service', async (importOriginal) => ({
