@@ -12,6 +12,7 @@ import {
 } from "../services/auth.service";
 import { maskEmail } from "../utils/format";
 import { setRegisteredFlash } from "./flash-messages";
+import { getPostLoginPath } from "./pending-join";
 import { clearGoogleSignUpPending, markGoogleSignUpPending } from "./google-sign-up";
 
 export interface FormActionResult<Field extends string> {
@@ -93,7 +94,7 @@ export async function loginAction({request}: ActionFunctionArgs): Promise<LoginA
         return {formError: getErrorMessage(error)};
     }
 
-    return redirect('/home');
+    return redirect(getPostLoginPath());
 }
 
 export async function registerAction({request}: ActionFunctionArgs): Promise<FormActionResult<RegisterField> | Response> {
@@ -147,7 +148,7 @@ export async function googleSignInAction({request}: ActionFunctionArgs): Promise
     }
 
     if (profileExists) {
-        return redirect('/home');
+        return redirect(getPostLoginPath());
     }
     markGoogleSignUpPending();
     return redirect('/completar-perfil');
@@ -175,7 +176,7 @@ export async function completeProfileAction({request}: ActionFunctionArgs): Prom
     }
 
     clearGoogleSignUpPending();
-    return redirect('/home');
+    return redirect(getPostLoginPath());
 }
 
 export async function logoutAction(): Promise<Response> {

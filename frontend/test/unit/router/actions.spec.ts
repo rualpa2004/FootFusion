@@ -10,6 +10,7 @@ import {
     RESEND_VERIFICATION_INTENT
 } from '../../../src/router/actions';
 import { setRegisteredFlash } from '../../../src/router/flash-messages';
+import { savePendingJoinCode } from '../../../src/router/pending-join';
 import {
     clearGoogleSignUpPending,
     isGoogleSignUpPending,
@@ -112,6 +113,15 @@ describe('loginAction', () => {
 
         expect(login).toHaveBeenCalledWith('apex@example.com', 'secret123');
         expectRedirect(result, '/home');
+    });
+
+    it('redirects to /leagues when an invitation link is waiting', async () => {
+        // Expected: a 302 redirect to /leagues, where the join dialog opens filled in.
+        savePendingJoinCode('A7KQ2M');
+
+        const result = await loginAction(submit(VALID_LOGIN));
+
+        expectRedirect(result, '/leagues');
     });
 
     it('trims the email but keeps the password exactly as typed', async () => {
@@ -300,6 +310,16 @@ describe('googleSignInAction', () => {
 
         expectRedirect(result, '/home');
         expect(isGoogleSignUpPending()).toBe(false);
+    });
+
+    it('redirects to /leagues when the Google account has a profile and an invitation is waiting', async () => {
+        // Expected: a 302 redirect to /leagues.
+        vi.mocked(hasProfile).mockResolvedValue(true);
+        savePendingJoinCode('A7KQ2M');
+
+        const result = await googleSignInAction(submit({}));
+
+        expectRedirect(result, '/leagues');
     });
 
     it('marks the sign-up as pending and redirects to /completar-perfil on a first sign-in', async () => {

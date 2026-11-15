@@ -1,4 +1,4 @@
-import { CircleAlert, CircleCheck, Mail, MailCheck } from "lucide-react";
+import { CircleAlert, CircleCheck, Mail, MailCheck, Trophy } from "lucide-react";
 import { Form, Link, useActionData, useLoaderData, useNavigation } from "react-router-dom";
 import { AuthCard } from "../components/auth/AuthCard";
 import { GoogleSignInButton } from "../components/auth/GoogleSignInButton";
@@ -59,7 +59,8 @@ export function LoginPage() {
     const isResending = isSubmitting && navigation.formData?.get('intent') === RESEND_VERIFICATION_INTENT;
     // Masked email of the account just created, only right after registerAction redirects here
     // (one-time flash message read by loginLoader).
-    const {registeredEmail} = useLoaderData<typeof loginLoader>();
+    // pendingJoinCode: the user opened a league invitation link without a session.
+    const {registeredEmail, pendingJoinCode} = useLoaderData<typeof loginLoader>();
 
     const fieldErrors = actionData?.fieldErrors;
 
@@ -74,6 +75,13 @@ export function LoginPage() {
                     <FormAlert variant="success" icon={MailCheck}>
                         <b>Cuenta creada.</b> Te hemos enviado un correo a <b>{registeredEmail}</b> para verificarla.
                         Abre el enlace del correo y después inicia sesión.
+                    </FormAlert>
+                )}
+
+                {pendingJoinCode && !registeredEmail && !actionData && (
+                    <FormAlert variant="success" icon={Trophy}>
+                        <b>Te han invitado a una liga.</b> Inicia sesión o crea una cuenta para unirte con el
+                        código <b>{pendingJoinCode}</b>.
                     </FormAlert>
                 )}
 

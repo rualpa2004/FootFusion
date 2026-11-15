@@ -4,6 +4,7 @@ import { discardIncompleteAccount, getProfile, hasProfile, isProfileMissingError
 import { getDashboardData, getManagerSummary } from "../services/dashboard.service";
 import { consumeRegisteredFlash } from "./flash-messages";
 import { clearGoogleSignUpPending, isGoogleSignUpPending } from "./google-sign-up";
+import { getPostLoginPath, peekPendingJoinCode } from "./pending-join";
 
 async function discardAbandonedSignUp(): Promise<void> {
     clearGoogleSignUpPending();
@@ -64,7 +65,7 @@ export async function redirectIfAuthenticatedLoader() {
         await discardAbandonedSignUp();
         return null;
     }
-    throw redirect('/home');
+    throw redirect(getPostLoginPath());
 }
 
 export async function completeProfileLoader() {
@@ -86,7 +87,7 @@ export async function completeProfileLoader() {
         }
 
         if (profileExists) {
-            throw redirect('/home');
+            throw redirect(getPostLoginPath());
         }
         await discardAbandonedSignUp();
         throw redirect('/login');
@@ -97,7 +98,8 @@ export async function completeProfileLoader() {
 }
 
 export function loginLoader() {
-    return {registeredEmail: consumeRegisteredFlash()};
+    // pendingJoinCode: an invitation link was opened without a session (notice above the form).
+    return {registeredEmail: consumeRegisteredFlash(), pendingJoinCode: peekPendingJoinCode()};
 }
 
 /** Loader of HomePage: initial data for the dashboard cards. */

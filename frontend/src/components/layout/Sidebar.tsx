@@ -14,13 +14,13 @@ interface NavItem {
     to?: string;
 }
 
-// TODO: add `to` to each item as its page is created (e.g. '/lineup', '/market', '/leagues',
+// TODO: add `to` to each item as its page is created (e.g. '/lineup', '/market',
 // '/matchday', '/stats') and register the route as a child of the protected layout in router/index.tsx.
 const NAV_ITEMS: NavItem[] = [
     {label: 'Inicio', icon: LayoutDashboard, to: '/home'},
     {label: 'Alineación', icon: Shirt},
     {label: 'Mercado', icon: ArrowLeftRight},
-    {label: 'Ligas', icon: Trophy},
+    {label: 'Ligas', icon: Trophy, to: '/leagues'},
     {label: 'Jornada', icon: Calendar},
     {label: 'Estadísticas', icon: ChartColumn}
 ];

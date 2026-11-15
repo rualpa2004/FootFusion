@@ -264,17 +264,17 @@ describe('loaders', () => {
 
     describe('loginLoader', () => {
         it('returns the masked email after a registration', () => {
-            // Expected: { registeredEmail: "a***x@example.com" }.
+            // Expected: { registeredEmail: "a***x@example.com", pendingJoinCode: null }.
             vi.mocked(consumeRegisteredFlash).mockReturnValue('a***x@example.com');
 
-            expect(loginLoader()).toEqual({registeredEmail: 'a***x@example.com'});
+            expect(loginLoader()).toEqual({registeredEmail: 'a***x@example.com', pendingJoinCode: null});
         });
 
         it('returns null in a normal visit', () => {
-            // Expected: { registeredEmail: null }.
+            // Expected: { registeredEmail: null, pendingJoinCode: null }.
             vi.mocked(consumeRegisteredFlash).mockReturnValue(null);
 
-            expect(loginLoader()).toEqual({registeredEmail: null});
+            expect(loginLoader()).toEqual({registeredEmail: null, pendingJoinCode: null});
         });
     });
 
