@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+    formatDate,
+    formatEuros,
+    formatMillions,
     formatNumber,
     formatPositionLabel,
     formatPrice,
+    formatSignedPoints,
     formatTimeRemaining,
     maskEmail
 } from '../../../src/utils/format';
@@ -98,5 +102,37 @@ describe('formatNumber', () => {
     it('does not group four-digit numbers, following the es-ES convention', () => {
         // Expected: "1524" (the Spanish locale only groups from five digits on).
         expect(formatNumber(1524)).toBe('1524');
+    });
+});
+
+describe('formatEuros', () => {
+    it('always groups the thousands, also with four digits', () => {
+        // Expected: "100.000.000 €" and "1.500 €".
+        expect(formatEuros(100_000_000)).toBe('100.000.000 €');
+        expect(formatEuros(1500)).toBe('1.500 €');
+    });
+});
+
+describe('formatMillions', () => {
+    it('shows millions with up to two decimals', () => {
+        // Expected: "14 M€", "12,5 M€" and "16,25 M€".
+        expect(formatMillions(14_000_000)).toBe('14 M€');
+        expect(formatMillions(12_500_000)).toBe('12,5 M€');
+        expect(formatMillions(16_250_000)).toBe('16,25 M€');
+    });
+});
+
+describe('formatSignedPoints', () => {
+    it('adds the sign to positive and negative points', () => {
+        // Expected: "+3" and "−2" (minus sign, not a hyphen).
+        expect(formatSignedPoints(3)).toBe('+3');
+        expect(formatSignedPoints(-2)).toBe('−2');
+    });
+});
+
+describe('formatDate', () => {
+    it('formats a date as dd/mm/yyyy', () => {
+        // Expected: "11/11/2026".
+        expect(formatDate('2026-11-11T10:00:00.000Z')).toBe('11/11/2026');
     });
 });
