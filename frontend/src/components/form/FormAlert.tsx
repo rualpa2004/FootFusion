@@ -1,19 +1,34 @@
+import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
+type AlertVariant = 'error' | 'success' | 'warning';
+
 interface FormAlertProps {
-    variant: 'error' | 'success';
+    variant: AlertVariant;
+    icon?: LucideIcon;
     children: ReactNode;
 }
 
-/** Form-level message (e.g. wrong credentials, account created). */
-export function FormAlert({variant, children}: FormAlertProps) {
-    const styles = variant === 'error'
-        ? 'border-danger/40 bg-danger/10 text-danger'
-        : 'border-primary-line bg-primary-soft text-primary';
+const VARIANT_STYLES: Record<AlertVariant, {box: string; icon: string}> = {
+    error: {box: 'border-danger/40 bg-danger/10 text-[#FFC4BF]', icon: 'text-danger'},
+    success: {box: 'border-primary-line bg-primary-soft text-[#B9F8D3]', icon: 'text-primary'},
+    warning: {box: 'border-warning/35 bg-warning/8 text-[#FBE7A1]', icon: 'text-warning'}
+};
 
-    return (
-        <div role={variant === 'error' ? 'alert' : 'status'} className={`rounded-lg border px-3 py-2.5 text-xs ${styles}`}>
-            {children}
-        </div>
+/** Form-level message (e.g. wrong credentials, account created, email not verified). Bold text is shown in white. */
+export function FormAlert({variant, icon: Icon, children}: Readonly<FormAlertProps>) {
+    const styles = VARIANT_STYLES[variant];
+    const className = `flex gap-2.5 rounded-lg border px-3 py-2.5 text-xs leading-[1.55] [&_b]:text-white ${styles.box}`;
+    const content = (
+        <>
+            {Icon && <Icon className={`mt-px size-[18px] shrink-0 ${styles.icon}`} aria-hidden/>}
+            <div className="min-w-0 flex-1">{children}</div>
+        </>
     );
+
+    // Errors interrupt the screen reader (role "alert"); the other messages use <output>, whose implicit role is "status"
+    if (variant === 'error') {
+        return <div role="alert" className={className}>{content}</div>;
+    }
+    return <output className={className}>{content}</output>;
 }

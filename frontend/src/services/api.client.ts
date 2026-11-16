@@ -12,6 +12,9 @@ export class ApiError extends Error {
 }
 
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+    // React Router runs the loaders of a page and of its layout at the same time, so a page loader can
+    // call the API before protectedLoader has waited for Firebase to restore the session after a reload.
+    await auth.authStateReady();
     const token = await auth.currentUser?.getIdToken();
 
     const response = await fetch(`${API_URL}${path}`, {

@@ -8,31 +8,31 @@ describe('registered flash message', () => {
     });
 
     it('is not set by default', () => {
-        // Expected: false.
-        expect(consumeRegisteredFlash()).toBe(false);
+        // Expected: null.
+        expect(consumeRegisteredFlash()).toBeNull();
     });
 
-    it('is read once after being set', () => {
-        // Expected: true, because an account was just created.
-        setRegisteredFlash();
+    it('returns the masked email once after being set', () => {
+        // Expected: the masked email of the account just created.
+        setRegisteredFlash('a***x@example.com');
 
-        expect(consumeRegisteredFlash()).toBe(true);
+        expect(consumeRegisteredFlash()).toBe('a***x@example.com');
     });
 
     it('is removed after being read, so it is only shown once', () => {
-        // Expected: true the first time and false the second time (e.g. after reloading /login).
-        setRegisteredFlash();
+        // Expected: the email the first time and null the second time (e.g. after reloading /login).
+        setRegisteredFlash('a***x@example.com');
         consumeRegisteredFlash();
 
-        expect(consumeRegisteredFlash()).toBe(false);
+        expect(consumeRegisteredFlash()).toBeNull();
     });
 
-    it('stores the flag in sessionStorage, not in the URL', () => {
-        // Expected: one entry in sessionStorage with value "1".
-        setRegisteredFlash();
+    it('stores the masked email in sessionStorage, not in the URL', () => {
+        // Expected: one entry in sessionStorage with the masked email as value.
+        setRegisteredFlash('a***x@example.com');
 
         expect(sessionStorage.length).toBe(1);
-        expect(sessionStorage.getItem(sessionStorage.key(0)!)).toBe('1');
+        expect(sessionStorage.getItem(sessionStorage.key(0)!)).toBe('a***x@example.com');
     });
 
     it('does not crash when sessionStorage cannot be written', () => {
@@ -41,16 +41,16 @@ describe('registered flash message', () => {
             throw new Error('Storage blocked');
         });
 
-        expect(() => setRegisteredFlash()).not.toThrow();
+        expect(() => setRegisteredFlash('a***x@example.com')).not.toThrow();
         expect(console.warn).toHaveBeenCalled();
     });
 
-    it('returns false when sessionStorage cannot be read', () => {
-        // Expected: false (the optional message is simply not shown) and no exception.
+    it('returns null when sessionStorage cannot be read', () => {
+        // Expected: null (the optional message is simply not shown) and no exception.
         vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
             throw new Error('Storage blocked');
         });
 
-        expect(consumeRegisteredFlash()).toBe(false);
+        expect(consumeRegisteredFlash()).toBeNull();
     });
 });

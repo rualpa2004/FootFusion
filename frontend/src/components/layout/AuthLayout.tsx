@@ -3,7 +3,7 @@ import { BrandLogo } from "../BrandLogo";
 import { HeroPanel } from "../auth/HeroPanel";
 
 /**
- * Shared frame of /login and /register: header, hero panel and footer.
+ * Shared frame of /login, /register and /completar-perfil: header, hero panel and footer.
  * The form card of each page is rendered through <Outlet/>.
  */
 export function AuthLayout() {

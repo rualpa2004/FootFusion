@@ -1,4 +1,4 @@
-import { getInitials } from "../utils/format";
+import { User } from "lucide-react";
 
 interface UserAvatarProps {
     name: string;
@@ -6,18 +6,27 @@ interface UserAvatarProps {
     className?: string;
 }
 
-/** Profile photo, or the user's initials when there is no photo. */
+/** Profile photo, or a generic user icon when there is no photo. */
 export function UserAvatar({name, photoUrl, className = 'size-9'}: UserAvatarProps) {
     if (photoUrl) {
-        return <img src={photoUrl} alt={name} className={`${className} shrink-0 rounded-full object-cover`}/>;
+        // no-referrer: Google profile photos can refuse requests that come from other sites.
+        return (
+            <img
+                src={photoUrl}
+                alt={name}
+                referrerPolicy="no-referrer"
+                className={`${className} shrink-0 rounded-full object-cover`}
+            />
+        );
     }
 
     return (
         <div
-            className={`${className} flex shrink-0 items-center justify-center rounded-full bg-surface-raised text-sm font-bold text-primary`}
+            role="img"
             aria-label={name}
+            className={`${className} flex shrink-0 items-center justify-center rounded-full bg-surface-raised text-muted`}
         >
-            {getInitials(name)}
+            <User className="size-[55%]" aria-hidden/>
         </div>
     );
 }

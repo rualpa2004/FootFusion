@@ -1,6 +1,10 @@
 import type { PlayerPosition } from "../services/dashboard.service";
 
 const numberFormatter = new Intl.NumberFormat('es-ES');
+// Spanish formatting skips the separator in 4-digit numbers ("1000"); amounts of money always use it.
+const groupedNumberFormatter = new Intl.NumberFormat('es-ES', {useGrouping: 'always'});
+const millionsFormatter = new Intl.NumberFormat('es-ES', {maximumFractionDigits: 2});
+const dateFormatter = new Intl.DateTimeFormat('es-ES', {day: '2-digit', month: '2-digit', year: 'numeric'});
 
 const POSITION_LABELS: Record<PlayerPosition, string> = {
     GK: 'POR',
@@ -11,6 +15,26 @@ const POSITION_LABELS: Record<PlayerPosition, string> = {
 
 export function formatNumber(value: number): string {
     return numberFormatter.format(value);
+}
+
+/** Whole euros with thousands separator: 100000000 -> "100.000.000 €". */
+export function formatEuros(value: number): string {
+    return `${groupedNumberFormatter.format(value)} €`;
+}
+
+/** Euros in millions with up to two decimals: 12500000 -> "12,5 M€". */
+export function formatMillions(value: number): string {
+    return `${millionsFormatter.format(value / 1_000_000)} M€`;
+}
+
+/** Signed points of a scoring setting: 4 -> "+4", -2 -> "−2". */
+export function formatSignedPoints(value: number): string {
+    return value > 0 ? `+${value}` : `−${Math.abs(value)}`;
+}
+
+/** Date as dd/mm/yyyy. */
+export function formatDate(isoDate: string): string {
+    return dateFormatter.format(new Date(isoDate));
 }
 
 export function formatPositionLabel(position: PlayerPosition): string {
@@ -32,11 +56,17 @@ export function formatTimeRemaining(isoDate: string, now: number = Date.now()): 
     return `${days}d ${hours}h ${minutes}m`;
 }
 
-export function getInitials(name: string): string {
-    return name
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((word) => word[0]!.toUpperCase())
-        .join('');
+/**
+ * Hides most of the part before the "@" so the address can be shown in notices without exposing it:
+ * keeps its first and last characters ("pepe@gmail.com" -> "p***e@gmail.com").
+ */
+export function maskEmail(email: string): string {
+    const atIndex = email.lastIndexOf('@');
+    if (atIndex <= 0) {
+        return email;
+    }
+
+    const localPart = email.slice(0, atIndex);
+    const lastCharacter = localPart.length > 1 ? localPart.at(-1) : '';
+    return `${localPart[0]}***${lastCharacter}${email.slice(atIndex)}`;
 }
