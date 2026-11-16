@@ -1,4 +1,6 @@
-import { ExecutionContext, UnauthorizedException } from "@nestjs/common";
+import { ExecutionContext, ForbiddenException, UnauthorizedException } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { ALLOW_UNVERIFIED_EMAIL_KEY } from "../../../src/auth/allow-unverified-email.decorator";
 import { FirebaseAuthGuard } from "../../../src/auth/firebase-auth.guard";
 
 jest.mock('firebase-admin/auth', () => ({
@@ -11,13 +13,19 @@ const mockVerifyIdToken = jest.fn();
 
 describe('FirebaseAuthGuard', () => {
     let guard: FirebaseAuthGuard;
+    let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+
+    const handler = () => undefined;
+    class TestController {}
 
     const buildContext = (authorization?: string) => {
         const request: Record<string, unknown> = {
             headers: authorization ? { authorization } : {}
         };
         const context = {
-            switchToHttp: () => ({getRequest: () => request})
+            switchToHttp: () => ({getRequest: () => request}),
+            getHandler: () => handler,
+            getClass: () => TestController
         } as unknown as ExecutionContext;
 
         return {context, request};
@@ -25,7 +33,8 @@ describe('FirebaseAuthGuard', () => {
 
     beforeEach(() => {
         mockVerifyIdToken.mockReset();
-        guard = new FirebaseAuthGuard();
+        reflector = {getAllAndOverride: jest.fn().mockReturnValue(undefined)};
+        guard = new FirebaseAuthGuard(reflector as unknown as Reflector);
     });
 
     it('throws UnauthorizedException when the Authorizaton header is missing', async () => {
@@ -50,8 +59,8 @@ describe('FirebaseAuthGuard', () => {
         expect(mockVerifyIdToken).toHaveBeenCalledWith("bad-token");
     });
 
-    it('returns true and sets firebaseUid and firebaseEmail when the token is valid', async () => {
-        mockVerifyIdToken.mockResolvedValue({uid: 'uid-123', email: 'ana@gmail.com'});
+    it('returns true and sets firebaseUid and firebaseEmail when the token is valid and the email verified', async () => {
+        mockVerifyIdToken.mockResolvedValue({uid: 'uid-123', email: 'ana@gmail.com', email_verified: true});
         const {context, request} = buildContext('Bearer good-token');
 
         const result = await guard.canActivate(context);
@@ -60,5 +69,25 @@ describe('FirebaseAuthGuard', () => {
         expect(mockVerifyIdToken).toHaveBeenCalledWith('good-token');
         expect(request.firebaseUid).toBe('uid-123');
         expect(request.firebaseEmail).toBe('ana@gmail.com');
+    });
+
+    it('throws ForbiddenException when the email is not verified', async () => {
+        mockVerifyIdToken.mockResolvedValue({uid: 'uid-123', email: 'ana@gmail.com', email_verified: false});
+        const {context, request} = buildContext('Bearer good-token');
+
+        await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
+        expect(request.firebaseUid).toBeUndefined();
+    });
+
+    it('accepts an unverified email on routes marked with @AllowUnverifiedEmail()', async () => {
+        mockVerifyIdToken.mockResolvedValue({uid: 'uid-123', email: 'ana@gmail.com', email_verified: false});
+        reflector.getAllAndOverride.mockReturnValue(true);
+        const {context, request} = buildContext('Bearer good-token');
+
+        const result = await guard.canActivate(context);
+
+        expect(result).toBe(true);
+        expect(request.firebaseUid).toBe('uid-123');
+        expect(reflector.getAllAndOverride).toHaveBeenCalledWith(ALLOW_UNVERIFIED_EMAIL_KEY, [handler, TestController]);
     });
 })
