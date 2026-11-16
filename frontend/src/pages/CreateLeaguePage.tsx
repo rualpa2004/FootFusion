@@ -116,7 +116,7 @@ export function CreateLeaguePage() {
                     <ToggleRow
                         name="captainEnabled"
                         label="Capitán"
-                        hint="Cada jornada eliges un capitán que puntúa doble."
+                        hint="Cada jornada eliges un capitán cuya puntuación se multiplica por 1,5."
                     />
 
                     <ToggleRow
