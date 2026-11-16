@@ -13,7 +13,7 @@ function multipliersText({multipliers}: LeagueDetail): string {
 }
 
 // Read-only settings of a league
-export function LeagueSettingsPanel({league}: {league: LeagueDetail}) {
+export function LeagueSettingsPanel({league}: Readonly<{league: LeagueDetail}>) {
     const rows: [string, string][] = [
         ['Creada el', formatDate(league.createdAt)],
         ['Presupuesto inicial', formatEuros(league.initialBudget)],

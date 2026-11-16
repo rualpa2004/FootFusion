@@ -6,7 +6,7 @@ interface CompetitionLogoProps {
 }
 
 /** Logo of a competition, or its initials when it has no logo. */
-export function CompetitionLogo({competition, className = 'size-[18px]'}: CompetitionLogoProps) {
+export function CompetitionLogo({competition, className = 'size-[18px]'}: Readonly<CompetitionLogoProps>) {
     if (competition.logo) {
         return <img src={competition.logo} alt="" className={`${className} shrink-0 rounded-full bg-white object-contain p-px`}/>;
     }
@@ -23,7 +23,7 @@ export function CompetitionLogo({competition, className = 'size-[18px]'}: Compet
 }
 
 /** Rounded chip with the logo and the name of a competition. */
-export function CompetitionChip({competition}: {competition: Competition}) {
+export function CompetitionChip({competition}: Readonly<{competition: Competition}>) {
     return (
         <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-raised py-1 pr-2 pl-1 text-[11px] font-semibold text-text">
             <CompetitionLogo competition={competition}/>

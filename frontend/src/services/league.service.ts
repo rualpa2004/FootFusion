@@ -149,6 +149,6 @@ export function renameLeague(leagueId: number, name: string): Promise<LeagueDeta
  * TODO: the backend has no matchdays yet (scoring branch). When it has, request them here and add the
  * request of the points of one matchday, used by leagueDetailLoader when a matchday is selected.
  */
-export async function getPlayedMatchdays(_leagueId: number): Promise<number[]> {
-    return [];
+export function getPlayedMatchdays(_leagueId: number): Promise<number[]> {
+    return Promise.resolve([]);
 }

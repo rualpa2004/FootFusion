@@ -32,7 +32,7 @@ function sortForReveal(squad: SquadPlayer[]): SquadPlayer[] {
  * Initial squad received after creating or joining a league, shown as cards that turn over one by one.
  * It is only shown with the response of the action: reloading the page does not show it again.
  */
-export function SquadReveal({joined, showInvite = false}: SquadRevealProps) {
+export function SquadReveal({joined, showInvite = false}: Readonly<SquadRevealProps>) {
     const revealOrder = sortForReveal(joined.squad);
     const total = revealOrder.length;
     // Number of cards already turned over.

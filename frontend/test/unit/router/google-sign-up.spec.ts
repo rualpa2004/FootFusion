@@ -34,6 +34,6 @@ describe('pending Google sign-up', () => {
         // Expected: sessionStorage stays empty, so the mark is lost on reload on purpose.
         markGoogleSignUpPending();
 
-        expect(sessionStorage.length).toBe(0);
+        expect(sessionStorage).toHaveLength(0);
     });
 });

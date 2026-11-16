@@ -10,7 +10,7 @@ interface PageHeaderProps {
 }
 
 /** Title row of protected pages, with the current gameweek and the quick actions. */
-export function PageHeader({title, subtitle, titleAside}: PageHeaderProps) {
+export function PageHeader({title, subtitle, titleAside}: Readonly<PageHeaderProps>) {
     const {currentGameweek} = useManagerSummary();
 
     return (

@@ -11,7 +11,7 @@ interface GoogleSignInButtonProps {
     label: string;
 }
 
-export function GoogleSignInButton({label}: GoogleSignInButtonProps) {
+export function GoogleSignInButton({label}: Readonly<GoogleSignInButtonProps>) {
     const fetcher = useFetcher<typeof googleSignInAction>();
     const isPending = fetcher.state !== 'idle';
 
@@ -34,7 +34,7 @@ export function GoogleSignInButton({label}: GoogleSignInButtonProps) {
         <>
             <div className="flex items-center gap-3 text-[11px] tracking-[.06em] text-subtle uppercase">
                 <span className="h-px flex-1 bg-line" aria-hidden/>
-                o por Google
+                <span>o por Google</span>
                 <span className="h-px flex-1 bg-line" aria-hidden/>
             </div>
             <div className="flex flex-col gap-2">

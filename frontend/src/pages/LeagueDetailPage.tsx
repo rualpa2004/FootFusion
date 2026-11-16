@@ -15,7 +15,8 @@ function freePlacesNote(membersCount: number, maxTeams: number): string {
     if (freePlaces <= 0) {
         return 'La liga está completa.';
     }
-    return `${freePlaces === 1 ? 'Queda 1 plaza' : `Quedan ${freePlaces} plazas`}. Comparte el código, el enlace o el QR para que se unan.`;
+    const places = freePlaces === 1 ? 'Queda 1 plaza' : `Quedan ${freePlaces} plazas`;
+    return `${places}. Comparte el código, el enlace o el QR para que se unan.`;
 }
 
 export function LeagueDetailPage() {

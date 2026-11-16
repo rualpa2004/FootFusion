@@ -18,7 +18,7 @@ const MODES: {value: ScoringMode; title: string; description: string}[] = [
     {value: CUSTOM_SCORING_MODE, title: 'Personalizada', description: 'Ajusta goles, asistencias, porterías a cero, tarjetas, duelos y faltas.'}
 ];
 
-export function ScoringSummary({scoring}: {scoring: ScoringSettings}) {
+export function ScoringSummary({scoring}: Readonly<{scoring: ScoringSettings}>) {
     return (
         <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1.5 rounded-lg bg-background p-3 text-xs sm:grid-cols-[1fr_auto_1fr_auto]">
             {SCORING_SETTINGS.map((setting) => (

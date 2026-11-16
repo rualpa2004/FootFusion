@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
-import { useId, type MouseEvent, type ReactNode, type Ref } from "react";
+import { useId, type ReactNode, type Ref } from "react";
+import { closeDialogOnBackdropClick } from "./dialog-utils";
 
 interface ModalDialogProps {
     ref: Ref<HTMLDialogElement>;
@@ -10,20 +11,14 @@ interface ModalDialogProps {
     children: ReactNode;
 }
 
-export function ModalDialog({ref, title, description, icon: Icon, centered = false, children}: ModalDialogProps) {
+export function ModalDialog({ref, title, description, icon: Icon, centered = false, children}: Readonly<ModalDialogProps>) {
     const titleId = useId();
-
-    function closeOnBackdropClick(event: MouseEvent<HTMLDialogElement>) {
-        if (event.target === event.currentTarget) {
-            event.currentTarget.close();
-        }
-    }
 
     return (
         <dialog
             ref={ref}
             aria-labelledby={titleId}
-            onClick={closeOnBackdropClick}
+            onClick={closeDialogOnBackdropClick}
             className="m-auto w-[440px] max-w-[calc(100vw-32px)] rounded-2xl border border-line-strong bg-surface p-0 text-text shadow-[0_24px_48px_rgba(0,0,0,.5)] backdrop:bg-[rgb(3_6_11/.72)]"
         >
             <div className={`flex flex-col gap-4 p-6 ${centered ? 'items-center text-center' : ''}`}>
@@ -42,7 +37,7 @@ export function ModalDialog({ref, title, description, icon: Icon, centered = fal
     );
 }
 
-export function CloseDialogButton({label = 'Cancelar'}: {label?: string}) {
+export function CloseDialogButton({label = 'Cancelar'}: Readonly<{label?: string}>) {
     return (
         <button
             type="button"

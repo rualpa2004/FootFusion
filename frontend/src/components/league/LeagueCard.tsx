@@ -5,7 +5,7 @@ import { CompetitionChip } from "./CompetitionLogo";
 import { OwnerBadge } from "./OwnerBadge";
 
 // Card of a league in the user's leagues list
-export function LeagueCard({league}: {league: MyLeague}) {
+export function LeagueCard({league}: Readonly<{league: MyLeague}>) {
     const occupancy = Math.min(100, (league.membersCount / league.maxTeams) * 100);
 
     return (

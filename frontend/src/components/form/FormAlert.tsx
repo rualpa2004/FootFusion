@@ -16,16 +16,19 @@ const VARIANT_STYLES: Record<AlertVariant, {box: string; icon: string}> = {
 };
 
 /** Form-level message (e.g. wrong credentials, account created, email not verified). Bold text is shown in white. */
-export function FormAlert({variant, icon: Icon, children}: FormAlertProps) {
+export function FormAlert({variant, icon: Icon, children}: Readonly<FormAlertProps>) {
     const styles = VARIANT_STYLES[variant];
-
-    return (
-        <div
-            role={variant === 'error' ? 'alert' : 'status'}
-            className={`flex gap-2.5 rounded-lg border px-3 py-2.5 text-xs leading-[1.55] [&_b]:text-white ${styles.box}`}
-        >
+    const className = `flex gap-2.5 rounded-lg border px-3 py-2.5 text-xs leading-[1.55] [&_b]:text-white ${styles.box}`;
+    const content = (
+        <>
             {Icon && <Icon className={`mt-px size-[18px] shrink-0 ${styles.icon}`} aria-hidden/>}
             <div className="min-w-0 flex-1">{children}</div>
-        </div>
+        </>
     );
+
+    // Errors interrupt the screen reader (role "alert"); the other messages use <output>, whose implicit role is "status"
+    if (variant === 'error') {
+        return <div role="alert" className={className}>{content}</div>;
+    }
+    return <output className={className}>{content}</output>;
 }

@@ -11,7 +11,7 @@ interface ResendVerificationButtonProps {
 
 const BUTTON_CLASSES = 'inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-line-strong px-3.5 text-[13px] font-semibold text-text';
 
-export function ResendVerificationButton({cooldownSeconds = 0, isPending}: ResendVerificationButtonProps) {
+export function ResendVerificationButton({cooldownSeconds = 0, isPending}: Readonly<ResendVerificationButtonProps>) {
     const [secondsLeft, setSecondsLeft] = useState(cooldownSeconds);
     const submit = useSubmit();
 

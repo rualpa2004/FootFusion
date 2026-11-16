@@ -17,7 +17,7 @@ interface JoinLeagueDialogProps {
     isPending: boolean;
 }
 
-export function JoinLeagueDialog({ref, defaultCode, fieldErrors, formError, isPending}: JoinLeagueDialogProps) {
+export function JoinLeagueDialog({ref, defaultCode, fieldErrors, formError, isPending}: Readonly<JoinLeagueDialogProps>) {
     return (
         <ModalDialog
             ref={ref}

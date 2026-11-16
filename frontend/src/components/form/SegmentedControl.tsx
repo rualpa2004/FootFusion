@@ -14,7 +14,7 @@ interface SegmentedControlProps<T extends string | number> {
  * Group of radio buttons shown as one bar of buttons, as in the designs. Each option is a real radio input
  * (sent with the form and usable with the keyboard), visually hidden behind its label.
  */
-export function SegmentedControl<T extends string | number>({name, legend, options, defaultValue}: SegmentedControlProps<T>) {
+export function SegmentedControl<T extends string | number>({name, legend, options, defaultValue}: Readonly<SegmentedControlProps<T>>) {
     return (
         <fieldset className="flex flex-col gap-1.5">
             <legend className="mb-1.5 text-xs font-semibold text-text">{legend}</legend>

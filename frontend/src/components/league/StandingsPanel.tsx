@@ -9,7 +9,7 @@ function managerLabel(standing: Standing): string {
     return standing.isCurrentUser ? `${standing.member.userName} (Tú)` : standing.member.userName;
 }
 
-function Podium({standings}: {standings: Standing[]}) {
+function Podium({standings}: Readonly<{standings: Standing[]}>) {
     // Second, first and third, so the leader is in the centre
     const places = [standings[1], standings[0], standings[2]];
 
@@ -49,7 +49,7 @@ interface StandingsPanelProps {
 }
 
 // League ranking with a matchday selector.
-export function StandingsPanel({standings, matchdays, selectedMatchday}: StandingsPanelProps) {
+export function StandingsPanel({standings, matchdays, selectedMatchday}: Readonly<StandingsPanelProps>) {
     const submit = useSubmit();
 
     return (

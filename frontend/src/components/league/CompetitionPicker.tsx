@@ -10,7 +10,7 @@ interface CompetitionPickerProps {
 }
 
 /** Selectable cards of the competitions of a new league (checkboxes named "competitionIds", 1 to 3). */
-export function CompetitionPicker({competitions, error}: CompetitionPickerProps) {
+export function CompetitionPicker({competitions, error}: Readonly<CompetitionPickerProps>) {
     // Selected ids, needed to show the counter and to block more than the maximum while choosing.
     const [selected, setSelected] = useState<number[]>([]);
     const isFull = selected.length >= LEAGUE_MAX_COMPETITIONS;

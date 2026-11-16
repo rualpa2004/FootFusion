@@ -14,7 +14,7 @@ import type { loginLoader } from "../router/loaders";
 /** Resend cooldown (seconds) after the verification email has been sent again. */
 const RESEND_COOLDOWN_SECONDS = 60;
 
-function VerificationAlert({notice, isResending}: {notice: VerificationNotice; isResending: boolean}) {
+function VerificationAlert({notice, isResending}: Readonly<{notice: VerificationNotice; isResending: boolean}>) {
     if (notice.status === 'alreadyVerified') {
         return (
             <FormAlert variant="success" icon={CircleCheck}>

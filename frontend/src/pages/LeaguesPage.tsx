@@ -10,7 +10,7 @@ import { SQUAD_SIZE } from "../config/league.constants";
 import type { joinLeagueAction } from "../router/league-actions";
 import type { leaguesLoader } from "../router/league-loaders";
 
-function LeagueActions({onJoin}: {onJoin: () => void}) {
+function LeagueActions({onJoin}: Readonly<{onJoin: () => void}>) {
     return (
         <div className="flex flex-wrap gap-2.5">
             <button type="button" onClick={onJoin} className={SECONDARY_BUTTON_CLASSES}>

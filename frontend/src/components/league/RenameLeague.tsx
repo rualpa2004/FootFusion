@@ -9,7 +9,7 @@ import { PRIMARY_BUTTON_CLASSES } from "../form/button-styles";
 import { TextInput } from "../form/TextInput";
 import { CloseDialogButton, ModalDialog } from "../ModalDialog";
 
-export function RenameLeague({currentName}: {currentName: string}) {
+export function RenameLeague({currentName}: Readonly<{currentName: string}>) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const fetcher = useFetcher<typeof renameLeagueAction>();
     const fieldErrors = fetcher.data?.fieldErrors;

@@ -45,7 +45,7 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
 }
 
 /** Codes Firebase returns when the user closes the Google window: not an error to show. */
-const DISMISSED_POPUP_CODES = ['auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'auth/user-cancelled'];
+const DISMISSED_POPUP_CODES = new Set(['auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'auth/user-cancelled']);
 
 // Always lets the user pick the Google account, so "Usar otra cuenta" can choose a different one.
 const googleProvider = new GoogleAuthProvider();
@@ -155,7 +155,7 @@ export async function signInWithGoogle(): Promise<boolean> {
         await signInWithPopup(auth, googleProvider);
         return true;
     } catch (error) {
-        if (error instanceof FirebaseError && DISMISSED_POPUP_CODES.includes(error.code)) {
+        if (error instanceof FirebaseError && DISMISSED_POPUP_CODES.has(error.code)) {
             return false;
         }
         console.error('Google sign-in failed', error);

@@ -26,7 +26,7 @@ export function PlayerCardBack() {
 }
 
 //Card of a squad player: position, club crest, name, market value and clause.
-export function PlayerCard({player}: {player: SquadPlayer}) {
+export function PlayerCard({player}: Readonly<{player: SquadPlayer}>) {
     const position = player.positionGroup;
     const colors = position ? POSITION_COLORS[position] : 'text-muted border-line-strong';
 

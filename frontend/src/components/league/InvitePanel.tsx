@@ -22,7 +22,7 @@ interface InvitePanelProps {
 }
 
 /** Ways of inviting friends to a league: the code, the link and a QR code of the link. */
-export function InvitePanel({leagueName, joinCode, note}: InvitePanelProps) {
+export function InvitePanel({leagueName, joinCode, note}: Readonly<InvitePanelProps>) {
     const qrDialogRef = useRef<HTMLDialogElement>(null);
     const qrCanvasRef = useRef<HTMLCanvasElement>(null);
     // Notice shown for a moment after copying. Local UI state, not data of a loader.
@@ -87,9 +87,9 @@ export function InvitePanel({leagueName, joinCode, note}: InvitePanelProps) {
             {note && <p className="text-[11px] leading-4 text-muted">{note}</p>}
 
             {notice && (
-                <p role="status" className="absolute -top-3 right-0 flex items-center gap-2 rounded-lg border border-primary-line bg-surface-raised px-3.5 py-2 text-xs text-white shadow-lg">
+                <output className="absolute -top-3 right-0 flex items-center gap-2 rounded-lg border border-primary-line bg-surface-raised px-3.5 py-2 text-xs text-white shadow-lg">
                     <Check className="size-3.5 text-primary" aria-hidden/>{notice}
-                </p>
+                </output>
             )}
 
             <ModalDialog

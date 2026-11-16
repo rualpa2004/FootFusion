@@ -13,7 +13,7 @@ const SIZE_CLASSES = {
     sm: {button: 'size-8', icon: 'size-4'}
 };
 
-export function LogoutButton({size = 'md'}: LogoutButtonProps) {
+export function LogoutButton({size = 'md'}: Readonly<LogoutButtonProps>) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const fetcher = useFetcher();
     const classes = SIZE_CLASSES[size];

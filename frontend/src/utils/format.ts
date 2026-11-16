@@ -67,6 +67,6 @@ export function maskEmail(email: string): string {
     }
 
     const localPart = email.slice(0, atIndex);
-    const lastCharacter = localPart.length > 1 ? localPart[localPart.length - 1] : '';
+    const lastCharacter = localPart.length > 1 ? localPart.at(-1) : '';
     return `${localPart[0]}***${lastCharacter}${email.slice(atIndex)}`;
 }

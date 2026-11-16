@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
-import { useId, type MouseEvent, type Ref } from "react";
+import { useId, type Ref } from "react";
+import { closeDialogOnBackdropClick } from "./dialog-utils";
 
 interface ConfirmDialogProps {
     ref: Ref<HTMLDialogElement>;
@@ -22,15 +23,9 @@ export function ConfirmDialog({
     pendingLabel,
     isPending = false,
     onConfirm
-}: ConfirmDialogProps) {
+}: Readonly<ConfirmDialogProps>) {
     const titleId = useId();
     const descriptionId = useId();
-
-    function closeOnBackdropClick(event: MouseEvent<HTMLDialogElement>) {
-        if (event.target === event.currentTarget) {
-            event.currentTarget.close();
-        }
-    }
 
     return (
         <dialog
@@ -38,7 +33,7 @@ export function ConfirmDialog({
             role="alertdialog"
             aria-labelledby={titleId}
             aria-describedby={descriptionId}
-            onClick={closeOnBackdropClick}
+            onClick={closeDialogOnBackdropClick}
             className="m-auto w-[400px] max-w-[calc(100vw-32px)] rounded-2xl border border-line-strong bg-surface p-0 text-text shadow-[0_24px_48px_rgba(0,0,0,.5)] backdrop:bg-[rgb(3_6_11/.72)]"
         >
             <div className="flex flex-col gap-4 p-6">
