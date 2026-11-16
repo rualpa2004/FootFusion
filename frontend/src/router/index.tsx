@@ -4,8 +4,11 @@ import { AuthLayout } from "../components/layout/AuthLayout";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { RouteErrorPage } from "../components/RouteErrorPage";
 import { CompleteProfilePage } from "../pages/CompleteProfilePage";
+import { CreateLeaguePage } from "../pages/CreateLeaguePage";
 import { HomePage } from "../pages/HomePage";
 import { LandingPage } from "../pages/LandingPage";
+import { LeagueDetailPage } from "../pages/LeagueDetailPage";
+import { LeaguesPage } from "../pages/LeaguesPage";
 import { LoginPage } from "../pages/LoginPage";
 import { RegisterPage } from "../pages/RegisterPage";
 import { completeProfileAction, googleSignInAction, loginAction, logoutAction, registerAction } from "./actions";
@@ -16,6 +19,8 @@ import {
     protectedLoader,
     redirectIfAuthenticatedLoader
 } from "./loaders";
+import { createLeagueAction, joinLeagueAction, renameLeagueAction } from "./league-actions";
+import { createLeagueLoader, joinLinkLoader, leagueDetailLoader, leaguesLoader } from "./league-loaders";
 import { PROTECTED_ROUTE_ID } from "./route-ids";
 
 export const router = createBrowserRouter([
@@ -48,12 +53,17 @@ export const router = createBrowserRouter([
             // Action-only routes, submitted through fetchers. They have no page, so visiting them redirects.
             {path: 'auth/google', action: googleSignInAction, loader: () => redirect('/login')},
             {path: 'logout', action: logoutAction, loader: () => redirect('/home')},
+            // Invitation link: outside the protected layout so the code is saved before the session check.
+            {path: 'leagues/join/:code', loader: joinLinkLoader},
             {
                 id: PROTECTED_ROUTE_ID,
                 element: <AppLayout/>,
                 loader: protectedLoader,
                 children: [
-                    {path: 'home', element: <HomePage/>, loader: homeLoader}
+                    {path: 'home', element: <HomePage/>, loader: homeLoader},
+                    {path: 'leagues', element: <LeaguesPage/>, loader: leaguesLoader, action: joinLeagueAction},
+                    {path: 'leagues/new', element: <CreateLeaguePage/>, loader: createLeagueLoader, action: createLeagueAction},
+                    {path: 'leagues/:leagueId', element: <LeagueDetailPage/>, loader: leagueDetailLoader, action: renameLeagueAction}
                 ]
             }
         ]

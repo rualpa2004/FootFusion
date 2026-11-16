@@ -17,6 +17,10 @@ if (typeof HTMLDialogElement.prototype.close !== 'function') {
     };
 }
 
+// jsdom cannot draw on a <canvas> and logs "Not implemented" every time a component tries (e.g. the QR
+// code of the league invitation). Returning no context keeps the output clean; drawing is not tested.
+HTMLCanvasElement.prototype.getContext = (() => null) as typeof HTMLCanvasElement.prototype.getContext;
+
 afterEach(() => {
     // Unmounts the components rendered by the previous test so tests do not affect each other.
     cleanup();

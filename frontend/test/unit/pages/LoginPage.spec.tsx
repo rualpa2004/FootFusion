@@ -76,10 +76,21 @@ describe('LoginPage', () => {
         expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
 
+    it('tells the user they were invited to a league after an invitation link', async () => {
+        // Expected: the notice "Te han invitado a una liga" with the code A7KQ2M.
+        renderWithRouter({
+            path: '/login',
+            element: <LoginPage/>,
+            loader: () => ({registeredEmail: null, pendingJoinCode: 'A7KQ2M'})
+        });
+
+        expect(await screen.findByRole('status')).toHaveTextContent(
+            'Te han invitado a una liga. Inicia sesión o crea una cuenta para unirte con el código A7KQ2M.'
+        );
+    });
+
     it('sends the typed values to the route action', async () => {
         // Expected: the action receives "email" and "password" in the form data (read by their name attribute).
-        // The values are captured and checked outside the action: an expect() failing inside it
-        // would be caught by React Router and the test would not notice.
         const {action, calls} = recordingAction();
         renderLoginPage({action});
 

@@ -1,20 +1,25 @@
 import { Bell } from "lucide-react";
+import type { ReactNode } from "react";
 import { useManagerSummary } from "../../hooks/useManagerSummary";
 import { LogoutButton } from "./LogoutButton";
 
 interface PageHeaderProps {
     title: string;
     subtitle: string;
+    titleAside?: ReactNode;
 }
 
 /** Title row of protected pages, with the current gameweek and the quick actions. */
-export function PageHeader({title, subtitle}: PageHeaderProps) {
+export function PageHeader({title, subtitle, titleAside}: PageHeaderProps) {
     const {currentGameweek} = useManagerSummary();
 
     return (
         <header className="flex flex-col gap-4 border-b border-line pb-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-col gap-1">
-                <h1 className="font-display text-[28px] font-extrabold text-white">{title}</h1>
+            <div className="flex min-w-0 flex-col gap-1">
+                <div className="flex flex-wrap items-center gap-2.5">
+                    <h1 className="font-display text-[28px] font-extrabold break-words text-white">{title}</h1>
+                    {titleAside}
+                </div>
                 <p className="text-sm text-muted">{subtitle}</p>
             </div>
 
