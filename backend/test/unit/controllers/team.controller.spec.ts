@@ -1,11 +1,10 @@
-import { ExecutionContext, INestApplication, ValidationPipe } from "@nestjs/common";
-import { Test } from "@nestjs/testing";
+import { INestApplication } from "@nestjs/common";
 import request from "supertest";
 import { App } from "supertest/types";
 import { TeamController } from "../../../src/controllers/team.controller";
 import { TeamService } from "../../../src/services/team.service";
 import { LineupService } from "../../../src/services/lineup.service";
-import { FirebaseAuthGuard } from "../../../src/auth/firebase-auth.guard";
+import { createControllerApp } from "./controller-test-app";
 
 // The real services need the repositories (ES modules Jest can not load); the controller only needs their classes.
 jest.mock('../../../src/services/team.service', () => ({TeamService: class TeamService {}}));
@@ -30,22 +29,8 @@ describe('TeamController', () => {
             saveLineup: jest.fn().mockResolvedValue({teamId: 50})
         };
 
-        const module = await Test.createTestingModule({
-            controllers: [TeamController],
-            providers: [{provide: TeamService, useValue: teamService}, {provide: LineupService, useValue: lineupService}]
-        })
-            // Firebase is replaced: every request is authenticated as uid-1
-            .overrideGuard(FirebaseAuthGuard)
-            .useValue({canActivate: (context: ExecutionContext) => {
-                context.switchToHttp().getRequest<{firebaseUid?: string}>().firebaseUid = 'uid-1';
-                return true;
-            }})
-            .compile();
-
-        app = module.createNestApplication();
-        // Same pipe as main.ts
-        app.useGlobalPipes(new ValidationPipe({whitelist: true}));
-        await app.init();
+        // Every request is authenticated as uid-1
+        app = await createControllerApp(TeamController, [{provide: TeamService, useValue: teamService}, {provide: LineupService, useValue: lineupService}]);
     });
 
     afterEach(async () => {
