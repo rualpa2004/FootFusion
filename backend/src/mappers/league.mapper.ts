@@ -8,12 +8,13 @@ import { LeagueCompetitionMapper } from "./league-competition.mapper";
 export class LeagueMapper {
 
     // League row of a new league. The multiplier columns are null when the multipliers are disabled.
-    static toEntity(dto: CreateLeagueDTO, joinCode: string, ownerId: number): Partial<League> {
+    static toEntity(dto: CreateLeagueDTO, joinCode: string, ownerId: number, firstMatchday: number | null = null): Partial<League> {
         const multipliers = dto.multipliers.enabled ? dto.multipliers : null;
         return {
             name: dto.name.trim(),
             joinCode,
             ownerId,
+            firstMatchday,
             pointReward: dto.pointReward,
             captainEnabled: dto.captainEnabled,
             multipliersEnabled: multipliers !== null,

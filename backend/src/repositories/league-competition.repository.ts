@@ -16,6 +16,12 @@ export class LeagueCompetitionRepository {
         await repository.insert(competitionIds.map((competitionId) => ({leagueId, competitionId})));
     }
 
+    async findCompetitionIds(leagueId: number, manager?: EntityManager): Promise<number[]> {
+        const repository = manager ? manager.getRepository(LeagueCompetition) : this.repository;
+        const rows = await repository.find({where: {leagueId}, select: {competitionId: true}});
+        return rows.map((row) => row.competitionId);
+    }
+
     // Leagues that use a competition (needed to score a matchday of that competition)
     async findLeagueIdsByCompetition(competitionId: number): Promise<number[]> {
         const rows = await this.repository.find({where: {competitionId}, select: {leagueId: true}});

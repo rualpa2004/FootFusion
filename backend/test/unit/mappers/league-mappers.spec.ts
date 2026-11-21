@@ -49,6 +49,7 @@ describe('LeagueMapper', () => {
                     name: 'Liga de amigos',
                     joinCode: 'ABC234',
                     ownerId: 7,
+                    firstMatchday: null,
                     pointReward: 200_000,
                     captainEnabled: true,
                     multipliersEnabled: false,
@@ -70,6 +71,11 @@ describe('LeagueMapper', () => {
                 multiplierFactor: 2,
                 multiplierTarget: MultiplierTarget.BOTH
             });
+        });
+
+        it('stores the first matchday of the league', () => {
+            // Expected: the matchday given is copied to firstMatchday.
+            expect(LeagueMapper.toEntity(createDTO({enabled: false}), 'ABC234', 7, 12)).toMatchObject({firstMatchday: 12});
         });
 
         it('ignores the multiplier settings sent with the multipliers disabled', () => {

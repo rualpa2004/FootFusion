@@ -27,6 +27,10 @@ import { LeagueScoringMapper } from "../mappers/league-scoring.mapper";
 import { LeagueCompetitionMapper } from "../mappers/league-competition.mapper";
 import { TeamFantasyMapper } from "../mappers/team-fantasy.mapper";
 import { PlayerPropertyMapper } from "../mappers/player-property.mapper";
+import { LineupRepository } from "../repositories/lineup.repository";
+import { MatchdayCalendarService } from "./matchday-calendar.service";
+import { Matchday } from "./matchday-rules";
+import { buildDefaultLineup } from "./lineup-rules";
 
 // Team and squad given to a new member, before reading the card data from MongoDB
 interface NewMember {
@@ -50,7 +54,9 @@ export class LeagueService {
         private readonly banRepository: BanRepository,
         private readonly sportsDataRepository: SportsDataRepository,
         private readonly joinCodeService: JoinCodeService,
-        private readonly squadAssignmentService: SquadAssignmentService
+        private readonly squadAssignmentService: SquadAssignmentService,
+        private readonly matchdayCalendarService: MatchdayCalendarService,
+        private readonly lineupRepository: LineupRepository
     ) {}
 
     // Creates the league with its settings, all the eligible players as free agents and the creator's team with its initial squad.
@@ -64,12 +70,16 @@ export class LeagueService {
         }
         const eligiblePlayers = await this.sportsDataRepository.findEligiblePlayers(competitionIds);
         const positions = new Map(eligiblePlayers.map((player) => [player.externalPlayerId, player.positionGroup]));
+        // The league starts at the next matchday that has not started yet
+        const nextMatchday = await this.matchdayCalendarService.getNext(competitionIds);
 
         const member = await this.dataSource.transaction(async (manager) => {
             const joinCode = await this.joinCodeService.generateUnique(
                 (code) => this.leagueRepository.existsByJoinCode(code, manager)
             );
-            const league = await this.leagueRepository.create(LeagueMapper.toEntity(dto, joinCode, user.id), manager);
+            const league = await this.leagueRepository.create(
+                LeagueMapper.toEntity(dto, joinCode, user.id, nextMatchday?.number ?? null), manager
+            );
 
             await this.leagueScoringRepository.create(LeagueScoringMapper.toEntity(dto.scoring, league.id), manager);
             await this.leagueCompetitionRepository.createMany(league.id, competitionIds, manager);
@@ -78,7 +88,7 @@ export class LeagueService {
                 PlayerPropertyMapper.toEntities(eligiblePlayers, league.id), manager
             );
 
-            return this.addMember(manager, league, user, dto.teamName, positions);
+            return this.addMember(manager, league, user, dto.teamName, positions, nextMatchday);
         });
 
         return this.toJoinedResponse(member);
@@ -109,7 +119,9 @@ export class LeagueService {
             const positions = await this.sportsDataRepository.findPositionGroups(
                 freeAgents.map((player) => player.externalPlayerId)
             );
-            return this.addMember(manager, league, user, dto.teamName, positions, freeAgents);
+            const competitionIds = await this.leagueCompetitionRepository.findCompetitionIds(league.id, manager);
+            const nextMatchday = await this.matchdayCalendarService.getNext(competitionIds);
+            return this.addMember(manager, league, user, dto.teamName, positions, nextMatchday, freeAgents);
         });
 
         return this.toJoinedResponse(member);
@@ -180,10 +192,11 @@ export class LeagueService {
     }
 
     // Creates the user's team with the initial budget and draws its squad among the free agents. The drawn players
-    // get the initial squad clause and are protected from now.
+    // get the initial squad clause and are protected from now. The team starts with a default lineup for the next
+    // matchday (none when the season has ended).
     private async addMember(
         manager: EntityManager, league: League, user: User, teamName: string | undefined,
-        positions: Map<number, PositionGroup>, freeAgents?: PlayerProperty[]
+        positions: Map<number, PositionGroup>, nextMatchday: Matchday | null, freeAgents?: PlayerProperty[]
     ): Promise<NewMember> {
         const team = await this.teamFantasyRepository.create(TeamFantasyMapper.toEntity(user, league.id, teamName), manager);
 
@@ -198,7 +211,8 @@ export class LeagueService {
             }));
 
         const acquiredAt = new Date();
-        const squad = this.squadAssignmentService.draw(candidates).map((candidate) => {
+        const drawn = this.squadAssignmentService.draw(candidates);
+        const squad = drawn.map((candidate) => {
             const player = agentsById.get(candidate.id)!;
             player.teamFantasyId = team.id;
             player.clauseValue = initialClause(player.marketValue);
@@ -206,6 +220,9 @@ export class LeagueService {
             return player;
         });
         await this.playerPropertyRepository.saveMany(squad, manager);
+        if (nextMatchday) {
+            await this.lineupRepository.saveForMatchday(team.id, nextMatchday.number, buildDefaultLineup(drawn), manager);
+        }
 
         return {league, team, squad, positions};
     }
