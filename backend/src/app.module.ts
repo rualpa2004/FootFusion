@@ -17,6 +17,7 @@ import { OfferModule } from './modules/offer.module';
 import { AccountCleanupModule } from './modules/account-cleanup.module';
 import { SportsDataModule } from './modules/sports-data.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { TeamModule } from './modules/team.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     HistoryModule,
     OfferModule,
     SportsDataModule,
+    TeamModule,
     // Periodic tasks (@Cron), e.g. the hourly cleanup of incomplete sign-ups.
     ScheduleModule.forRoot(),
     AccountCleanupModule

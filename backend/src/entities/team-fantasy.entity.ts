@@ -36,7 +36,7 @@ export class TeamFantasy {
     @CreateDateColumn()
     createdAt!: Date;
 
-    // Roster of the team. Enforced at the service layer: max 25 players per team
+    // Roster of the team. Enforced at the service layer: max SQUAD_MAX_PLAYERS (23) players per team
     @OneToMany(() => PlayerProperty, (playerProperty) => playerProperty.teamFantasy)
     players!: PlayerProperty[];
 }

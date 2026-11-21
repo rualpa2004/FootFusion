@@ -22,6 +22,9 @@ jest.mock('../../../src/repositories/player-property.repository', () => ({
 jest.mock('../../../src/repositories/user.repository', () => ({UserRepository: class UserRepository {}}));
 jest.mock('../../../src/repositories/ban.repository', () => ({BanRepository: class BanRepository {}}));
 jest.mock('../../../src/repositories/sports-data.repository', () => ({SportsDataRepository: class SportsDataRepository {}}));
+jest.mock('../../../src/repositories/lineup.repository', () => ({LineupRepository: class LineupRepository {}}));
+// The calendar service (replaced below) imports the clock, which only needs the ConfigService type
+jest.mock('@nestjs/config', () => ({ConfigService: class ConfigService {}}));
 
 const M = 1_000_000;
 const USER = {id: 7, name: 'Ana', firebaseUid: 'uid-7'};
@@ -40,7 +43,10 @@ const ELIGIBLE = POSITIONS.map((positionGroup, index) => ({
     externalPlayerId: 100 + index, positionGroup, marketValue: (5 + index) * M
 }));
 
-const buildDto = (overrides: Partial<CreateLeagueDTO> = {}): CreateLeagueDTO => ({
+// Next matchday of the calendar when the league is created or joined
+const NEXT_MATCHDAY = {number: 7, locksAt: new Date('2025-09-27T12:00:00Z'), endsAt: new Date('2025-09-29T21:59:59.999Z')};
+
+const buildDto =(overrides: Partial<CreateLeagueDTO> = {}): CreateLeagueDTO => ({
     name: '  Liga de amigos  ',
     competitionIds: [LALIGA.id, CHAMPIONS.id],
     scoring: {...SCORING},
@@ -55,6 +61,7 @@ describe('LeagueService', () => {
     let manager: object;
     let repositories: Record<string, Record<string, jest.Mock>>;
     let squadAssignment: {draw: jest.Mock};
+    let calendar: {getNext: jest.Mock};
     let freeAgents: {id: number; externalPlayerId: number; marketValue: number; clauseValue: number;
         teamFantasyId?: number; acquiredAt?: Date}[];
 
@@ -74,7 +81,11 @@ describe('LeagueService', () => {
                 findByIdWithSettings: jest.fn(),
                 save: jest.fn().mockImplementation((league) => Promise.resolve(league))
             },
-            leagueCompetition: {createMany: jest.fn().mockResolvedValue(undefined)},
+            leagueCompetition: {
+                createMany: jest.fn().mockResolvedValue(undefined),
+                findCompetitionIds: jest.fn().mockResolvedValue([LALIGA.id])
+            },
+            lineup: {saveForMatchday: jest.fn().mockResolvedValue({})},
             leagueScoring: {create: jest.fn().mockResolvedValue({})},
             leagueBan: {existsByLeagueAndUser: jest.fn().mockResolvedValue(false)},
             team: {
@@ -106,12 +117,14 @@ describe('LeagueService', () => {
         squadAssignment = {draw: jest.fn().mockImplementation((candidates: SquadCandidate[]) => candidates.slice(0, 14))};
         const dataSource = {transaction: jest.fn().mockImplementation((work: (m: object) => unknown) => work(manager))};
         const joinCodeService = {generateUnique: jest.fn().mockResolvedValue('ABC234')};
+        calendar = {getNext: jest.fn().mockResolvedValue(NEXT_MATCHDAY)};
 
         service = new LeagueService(
             dataSource as never, repositories.league as never, repositories.leagueCompetition as never,
             repositories.leagueScoring as never, repositories.leagueBan as never, repositories.team as never,
             repositories.playerProperty as never, repositories.user as never, repositories.ban as never,
-            repositories.sportsData as never, joinCodeService as never, squadAssignment as never
+            repositories.sportsData as never, joinCodeService as never, squadAssignment as never,
+            calendar as never, repositories.lineup as never
         );
     });
 
@@ -122,8 +135,8 @@ describe('LeagueService', () => {
             const result = await service.create('uid-7', buildDto());
 
             expect(repositories.league.create).toHaveBeenCalledWith({
-                name: 'Liga de amigos', joinCode: 'ABC234', ownerId: 7, pointReward: 200_000, captainEnabled: true,
-                multipliersEnabled: false, multiplierFinalMatchdays: null, multiplierFactor: null, multiplierTarget: null
+                name: 'Liga de amigos', joinCode: 'ABC234', ownerId: 7, firstMatchday: 7, pointReward: 200_000,
+                captainEnabled: true, multipliersEnabled: false, multiplierFinalMatchdays: null, multiplierFactor: null, multiplierTarget: null
             }, manager);
             expect(repositories.leagueScoring.create).toHaveBeenCalledWith({leagueId: 1, ...SCORING}, manager);
             expect(repositories.leagueCompetition.createMany).toHaveBeenCalledWith(1, [LALIGA.id, CHAMPIONS.id], manager);
@@ -166,6 +179,35 @@ describe('LeagueService', () => {
             expect(result.team.name).toBe('Los Galácticos');
         });
 
+        it('starts the league at the next matchday and gives the creator a default 4-4-2 lineup for it', async () => {
+            // Expected: the calendar of the chosen competitions gives matchday 7; the creator's lineup for matchday 7
+            // is a 4-4-2 without captain filled in draw order (the first 14 candidates are 3 GK, 7 DEF and 4 MID, so
+            // 1 GK, 4 DEF, 4 MID and the 2 FWD slots stay empty).
+            await service.create('uid-7', buildDto());
+
+            expect(calendar.getNext).toHaveBeenCalledWith([LALIGA.id, CHAMPIONS.id]);
+            expect(repositories.lineup.saveForMatchday).toHaveBeenCalledWith(50, 7, {
+                formation: '4-4-2', captainId: null,
+                players: [
+                    {slot: 'GK1', playerPropertyId: 1},
+                    {slot: 'DEF1', playerPropertyId: 4}, {slot: 'DEF2', playerPropertyId: 5},
+                    {slot: 'DEF3', playerPropertyId: 6}, {slot: 'DEF4', playerPropertyId: 7},
+                    {slot: 'MID1', playerPropertyId: 11}, {slot: 'MID2', playerPropertyId: 12},
+                    {slot: 'MID3', playerPropertyId: 13}, {slot: 'MID4', playerPropertyId: 14}
+                ]
+            }, manager);
+        });
+
+        it('creates no lineup when the season has ended', async () => {
+            // Expected: without a next matchday the league has no first matchday and no lineup is saved.
+            calendar.getNext.mockResolvedValue(null);
+
+            await service.create('uid-7', buildDto());
+
+            expect(repositories.league.create).toHaveBeenCalledWith(expect.objectContaining({firstMatchday: null}), manager);
+            expect(repositories.lineup.saveForMatchday).not.toHaveBeenCalled();
+        });
+
         it('rejects unknown competitions without opening the transaction', async () => {
             // Expected: BadRequestException when MongoDB does not have one of the competitions; nothing is saved.
             repositories.sportsData.findCompetitionsByIds.mockResolvedValue([LALIGA]);
@@ -206,6 +248,17 @@ describe('LeagueService', () => {
             expect(squadAssignment.draw).toHaveBeenCalledTimes(1);
             expect(result.squad).toHaveLength(14);
             expect(result.league).toEqual({id: 3, name: 'Liga', joinCode: 'ABC234'});
+        });
+
+        it('gives the new member a default lineup for the next matchday of the league competitions', async () => {
+            // Expected: the competitions of league 3 are read inside the transaction and the lineup is saved for
+            // matchday 7 with the 4-4-2 formation.
+            await service.join('uid-7', {joinCode: 'ABC234'});
+
+            expect(repositories.leagueCompetition.findCompetitionIds).toHaveBeenCalledWith(3, manager);
+            expect(calendar.getNext).toHaveBeenCalledWith([LALIGA.id]);
+            expect(repositories.lineup.saveForMatchday).toHaveBeenCalledWith(
+                50, 7, expect.objectContaining({formation: '4-4-2', captainId: null}), manager);
         });
 
         it('rejects an unknown code', async () => {

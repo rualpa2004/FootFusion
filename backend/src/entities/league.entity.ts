@@ -51,6 +51,11 @@ export class League {
     @Column({type: 'enum', enum: MultiplierTarget, nullable: true})
     multiplierTarget?: MultiplierTarget | null;
 
+    // First matchday the league plays: the next one that had not started when it was created (null in leagues created
+    // before this column existed, which then start at the first matchday of the season)
+    @Column({type: 'int', nullable: true})
+    firstMatchday?: number | null;
+
     @CreateDateColumn()
     createdAt!: Date;
 

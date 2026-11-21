@@ -17,6 +17,8 @@ import { BanModule } from "./ban.module";
 import { TeamFantasyModule } from "./team-fantasy.module";
 import { PlayerPropertyModule } from "./player-property.module";
 import { SportsDataModule } from "./sports-data.module";
+import { MatchdayModule } from "./matchday.module";
+import { LineupModule } from "./lineup.module";
 
 @Module({
     imports: [
@@ -25,7 +27,9 @@ import { SportsDataModule } from "./sports-data.module";
         BanModule,
         TeamFantasyModule,
         PlayerPropertyModule,
-        SportsDataModule
+        SportsDataModule,
+        MatchdayModule,
+        LineupModule
     ],
     controllers: [LeagueController],
     providers: [

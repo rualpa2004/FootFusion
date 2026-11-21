@@ -1,7 +1,7 @@
 import {Injectable} from "@nestjs/common";
 import {InjectModel} from "@nestjs/mongoose";
 import {Model} from "mongoose";
-import {SportsCompetition, SportsPlayer, SportsTeam} from "../schemas/sports-data.schemas";
+import {SportsCompetition, SportsMatch, SportsPlayer, SportsTeam} from "../schemas/sports-data.schemas";
 import {POSITION_GROUPS, PositionGroup} from "../config/league.constants";
 
 export interface CompetitionData {
@@ -32,7 +32,8 @@ export class SportsDataRepository {
     constructor(
         @InjectModel(SportsCompetition.name) private readonly competitionModel: Model<SportsCompetition>,
         @InjectModel(SportsTeam.name) private readonly teamModel: Model<SportsTeam>,
-        @InjectModel(SportsPlayer.name) private readonly playerModel: Model<SportsPlayer>
+        @InjectModel(SportsPlayer.name) private readonly playerModel: Model<SportsPlayer>,
+        @InjectModel(SportsMatch.name) private readonly matchModel: Model<SportsMatch>
     ) {}
 
     async findCompetitions(): Promise<CompetitionData[]> {
@@ -96,5 +97,13 @@ export class SportsDataRepository {
                 teamLogo: team?.logo ?? undefined
             }];
         }));
+    }
+
+    // Kick-off dates of every match of the competitions (needed to build the matchday calendar)
+    async findMatchDates(competitionIds: number[]): Promise<Date[]> {
+        const matches = await this.matchModel.find({competition_id: {$in: competitionIds}}, {date: 1}).lean();
+        return matches
+            .map((match) => new Date(match.date))
+            .filter((date) => !Number.isNaN(date.getTime()));
     }
 }

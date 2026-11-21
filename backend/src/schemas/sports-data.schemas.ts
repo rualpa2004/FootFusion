@@ -26,6 +26,16 @@ export class SportsPlayer {
     @Prop() market_value?: number;
 }
 
+// Match written by the ETL. The backend only reads its date and competition to build the matchday calendar.
+@Schema({collection: 'matches'})
+export class SportsMatch {
+    @Prop() external_id!: number;
+    @Prop() date!: string;              // ISO date of the kick-off (UTC)
+    @Prop() competition_id!: number;
+    @Prop() round?: string;
+}
+
 export const SportsCompetitionSchema = SchemaFactory.createForClass(SportsCompetition);
 export const SportsTeamSchema = SchemaFactory.createForClass(SportsTeam);
 export const SportsPlayerSchema = SchemaFactory.createForClass(SportsPlayer);
+export const SportsMatchSchema = SchemaFactory.createForClass(SportsMatch);
