@@ -8,10 +8,11 @@ interface ModalDialogProps {
     description?: ReactNode;
     icon?: LucideIcon;
     centered?: boolean;
+    onClose?: () => void;
     children: ReactNode;
 }
 
-export function ModalDialog({ref, title, description, icon: Icon, centered = false, children}: Readonly<ModalDialogProps>) {
+export function ModalDialog({ref, title, description, icon: Icon, centered = false, onClose, children}: Readonly<ModalDialogProps>) {
     const titleId = useId();
 
     return (
@@ -19,6 +20,7 @@ export function ModalDialog({ref, title, description, icon: Icon, centered = fal
             ref={ref}
             aria-labelledby={titleId}
             onClick={closeDialogOnBackdropClick}
+            onClose={onClose}
             className="m-auto w-[440px] max-w-[calc(100vw-32px)] rounded-2xl border border-line-strong bg-surface p-0 text-text shadow-[0_24px_48px_rgba(0,0,0,.5)] backdrop:bg-[rgb(3_6_11/.72)]"
         >
             <div className={`flex flex-col gap-4 p-6 ${centered ? 'items-center text-center' : ''}`}>

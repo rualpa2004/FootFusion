@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import {
     formatDate,
     formatEuros,
+    formatMatchdayTime,
     formatMillions,
     formatNumber,
     formatPositionLabel,
     formatPrice,
+    formatRank,
     formatSignedPoints,
     formatTimeRemaining,
     maskEmail
@@ -134,5 +136,24 @@ describe('formatDate', () => {
     it('formats a date as dd/mm/yyyy', () => {
         // Expected: "11/11/2026".
         expect(formatDate('2026-11-11T10:00:00.000Z')).toBe('11/11/2026');
+    });
+});
+
+describe('formatMatchdayTime', () => {
+    it('shows the weekday, the date and the time in Spanish time', () => {
+        // Expected: 17:45 UTC on Tuesday 25/11/2025 is 18:45 in Madrid (winter, UTC+1).
+        expect(formatMatchdayTime('2025-11-25T17:45:00.000Z')).toBe('martes 25/11 a las 18:45');
+    });
+
+    it('uses the summer offset of Madrid', () => {
+        // Expected: 12:00 UTC on Saturday 23/08/2025 is 14:00 in Madrid (summer, UTC+2).
+        expect(formatMatchdayTime('2025-08-23T12:00:00.000Z')).toBe('sábado 23/08 a las 14:00');
+    });
+});
+
+describe('formatRank', () => {
+    it('adds the ordinal mark', () => {
+        // Expected: "2.º".
+        expect(formatRank(2)).toBe('2.º');
     });
 });
