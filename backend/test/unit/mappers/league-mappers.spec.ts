@@ -94,27 +94,27 @@ describe('LeagueMapper', () => {
     });
 
     describe('toSummaryDTOs', () => {
-        it('builds one summary per team with its members count and competitions', () => {
+        it('builds one summary per team with its members count, its rank and the competitions', () => {
             const league = {id: 15, name: 'Liga', ownerId: 7, competitions: [leagueCompetition(140)]} as League;
             const team = {id: 42, name: 'Galácticos', budget: 100, totalPoints: 5, leagueId: 15, league} as TeamFantasy;
 
-            const [summary] = LeagueMapper.toSummaryDTOs([team], new Map([[15, 3]]), COMPETITIONS_BY_ID, 7);
+            const [summary] = LeagueMapper.toSummaryDTOs([team], new Map([[15, [40, 42, 41]]]), COMPETITIONS_BY_ID, 7);
 
-            // Expected: a LeagueSummaryDTO of the league (not of the team) with 3 members and La Liga.
+            // Expected: a LeagueSummaryDTO of the league (not of the team) with 3 members, the team 2nd and La Liga.
             expect(summary).toBeInstanceOf(LeagueSummaryDTO);
-            expect(summary).toMatchObject({id: 15, name: 'Liga', membersCount: 3, isOwner: true, team: {id: 42}});
+            expect(summary).toMatchObject({id: 15, name: 'Liga', membersCount: 3, isOwner: true, team: {id: 42, rank: 2}});
             expect(summary.competitions).toEqual([
                 {id: 140, name: 'La Liga', logo: 'laliga.png', countryName: 'Spain'}
             ]);
         });
 
-        it('uses 0 members when the league has no count', () => {
+        it('counts only the user team when the league has no ranking', () => {
             const league = {id: 16, name: 'Liga', ownerId: 1, competitions: []} as unknown as League;
             const team = {id: 43, leagueId: 16, league} as TeamFantasy;
 
-            // Expected: membersCount 0 and isOwner false for another owner.
+            // Expected: 1 member, the team 1st and isOwner false for another owner.
             expect(LeagueMapper.toSummaryDTOs([team], new Map(), COMPETITIONS_BY_ID, 7)[0])
-                .toMatchObject({membersCount: 0, isOwner: false});
+                .toMatchObject({membersCount: 1, isOwner: false, team: {rank: 1}});
         });
     });
 });

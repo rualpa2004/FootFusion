@@ -127,14 +127,14 @@ export class LeagueService {
         return this.toJoinedResponse(member);
     }
 
-    // Leagues of the user
+    // Leagues of the user, with the number of members and the position of his team in each one
     async findMine(firebaseUid: string): Promise<LeagueSummaryDTO[]> {
         const user = await this.findUser(firebaseUid);
         const teams = await this.teamFantasyRepository.findByUserWithLeagues(user.id);
-        const counts = await this.teamFantasyRepository.countByLeagues(teams.map((team) => team.leagueId));
+        const rankings = await this.teamFantasyRepository.findRankingsByLeagues(teams.map((team) => team.leagueId));
         const competitionsById = await this.competitionsById();
 
-        return LeagueMapper.toSummaryDTOs(teams, counts, competitionsById, user.id);
+        return LeagueMapper.toSummaryDTOs(teams, rankings, competitionsById, user.id);
     }
 
     // Info of the whole league, only for its members

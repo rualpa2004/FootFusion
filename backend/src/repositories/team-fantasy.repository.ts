@@ -3,6 +3,9 @@ import {InjectRepository} from "@nestjs/typeorm";
 import {EntityManager, In, Repository} from "typeorm";
 import {TeamFantasy} from "../entities/team-fantasy.entity";
 
+// Order of a league ranking: more points first and, with the same points, the team that joined first
+const RANKING_ORDER = {totalPoints: "DESC", id: "ASC"} as const;
+
 @Injectable()
 export class TeamFantasyRepository {
 
@@ -41,12 +44,12 @@ export class TeamFantasyRepository {
         });
     }
 
-    // Ordered by points so it can be used as the league ranking
+    // Ordered like the league ranking. With the same points, the team that joined first goes first (lower id)
     findByLeague(leagueId: number): Promise<TeamFantasy[]> {
         return this.repository.find({
             where: {leagueId},
             relations: {user: true},
-            order: {totalPoints: "DESC"}
+            order: RANKING_ORDER
         });
     }
 
@@ -58,14 +61,22 @@ export class TeamFantasyRepository {
         return this.repo(manager).count({where: {leagueId}});
     }
 
-    async countByLeagues(leagueIds: number[]): Promise<Map<number, number>> {
+    /**
+     * Ranking of several leagues in one query: the team ids of each league in ranking order ({leagueId: [teamIds]}).
+     * Gives both the number of members and the position of a team without loading the whole teams.
+     */
+    async findRankingsByLeagues(leagueIds: number[]): Promise<Map<number, number[]>> {
         if (leagueIds.length === 0) return new Map();
-        const teams = await this.repository.find({where: {leagueId: In(leagueIds)}, select: {leagueId: true}});
-        const counts = new Map<number, number>();
+        const teams = await this.repository.find({
+            where: {leagueId: In(leagueIds)},
+            select: {id: true, leagueId: true},
+            order: RANKING_ORDER
+        });
+        const rankings = new Map<number, number[]>();
         for (const team of teams) {
-            counts.set(team.leagueId, (counts.get(team.leagueId) ?? 0) + 1);
+            rankings.set(team.leagueId, [...(rankings.get(team.leagueId) ?? []), team.id]);
         }
-        return counts;
+        return rankings;
     }
 
     create(data: Partial<TeamFantasy>, manager?: EntityManager): Promise<TeamFantasy> {

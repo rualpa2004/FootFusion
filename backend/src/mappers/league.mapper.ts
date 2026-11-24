@@ -25,15 +25,16 @@ export class LeagueMapper {
     }
 
     // team: the user's team, loaded with its league and the league's competitions
-    static toSummaryDTO(team: TeamFantasy, membersCount: number, competitionsById: Map<number, CompetitionData>, userId: number): LeagueSummaryDTO {
+    // ranking: team ids of the team's league in ranking order
+    static toSummaryDTO(team: TeamFantasy, ranking: number[], competitionsById: Map<number, CompetitionData>, userId: number): LeagueSummaryDTO {
         const competitions = LeagueCompetitionMapper.toDTOs(team.league.competitions, competitionsById);
-        return new LeagueSummaryDTO(team, membersCount, competitions, userId);
+        return new LeagueSummaryDTO(team, ranking, competitions, userId);
     }
 
-    // counts: number of teams of each league ({leagueId: count})
-    static toSummaryDTOs(teams: TeamFantasy[], counts: Map<number, number>, competitionsById: Map<number, CompetitionData>, userId: number): LeagueSummaryDTO[] {
+    // rankings: team ids of each league in ranking order ({leagueId: [teamIds]})
+    static toSummaryDTOs(teams: TeamFantasy[], rankings: Map<number, number[]>, competitionsById: Map<number, CompetitionData>, userId: number): LeagueSummaryDTO[] {
         return teams.map((team) => LeagueMapper.toSummaryDTO(
-            team, counts.get(team.leagueId) ?? 0, competitionsById, userId
+            team, rankings.get(team.leagueId) ?? [team.id], competitionsById, userId
         ));
     }
 }

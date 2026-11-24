@@ -59,6 +59,16 @@ export class JoinedLeagueResponseDTO {
     }
 }
 
+// The user's team in the list of his leagues, with its position in the league ranking (1 = first)
+export class RankedFantasyTeamDTO extends FantasyTeamDTO {
+    rank: number;
+
+    constructor(team: TeamFantasy, rank: number) {
+        super(team);
+        this.rank = rank;
+    }
+}
+
 // A league in the list of the user's leagues
 export class LeagueSummaryDTO {
     id: number;
@@ -67,17 +77,17 @@ export class LeagueSummaryDTO {
     membersCount: number;
     maxTeams: number;
     isOwner: boolean;
-    team: FantasyTeamDTO;
+    team: RankedFantasyTeamDTO;
 
-    // team: the user's team, loaded with its league
-    constructor(team: TeamFantasy, membersCount: number, competitions: CompetitionResponseDTO[], userId: number) {
+    // team: the user's team, loaded with its league. ranking: team ids of the league in ranking order
+    constructor(team: TeamFantasy, ranking: number[], competitions: CompetitionResponseDTO[], userId: number) {
         this.id = team.league.id;
         this.name = team.league.name;
         this.competitions = competitions;
-        this.membersCount = membersCount;
+        this.membersCount = ranking.length;
         this.maxTeams = LEAGUE_MAX_TEAMS;
         this.isOwner = team.league.ownerId === userId;
-        this.team = new FantasyTeamDTO(team);
+        this.team = new RankedFantasyTeamDTO(team, ranking.indexOf(team.id) + 1);
     }
 }
 
