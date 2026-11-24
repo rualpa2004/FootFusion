@@ -38,6 +38,14 @@ describe('LeagueDetailPage', () => {
         expect(rows[1]).toHaveAttribute('aria-current', 'true');
     });
 
+    it('links every member to his team and the user to his own lineup', async () => {
+        // Expected: the user (id 1) goes to /leagues/5/team and the others to /leagues/5/teams/:teamId.
+        renderPage();
+
+        const links = within(await screen.findByRole('table')).getAllByRole('link');
+        expect(links.map((link) => link.getAttribute('href'))).toEqual(['/leagues/5/teams/102', '/leagues/5/team', '/leagues/5/teams/103']);
+    });
+
     it('shows the podium only when there are points', async () => {
         // Expected: podium with points; no podium in a league where everybody has 0 points.
         const {unmount} = renderWithRouter({

@@ -1,5 +1,5 @@
 import { ArrowLeftRight, Calendar, ChartColumn, LayoutDashboard, Shirt, Trophy, type LucideIcon } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useManagerSummary } from "../../hooks/useManagerSummary";
 import { formatNumber } from "../../utils/format";
@@ -14,11 +14,15 @@ interface NavItem {
     to?: string;
 }
 
-// TODO: add `to` to each item as its page is created (e.g. '/lineup', '/market',
+// Team pages (/leagues/5/team, /leagues/5/teams/7) belong to the "Alineación" section, not to "Ligas"
+const TEAM_PAGE_PATTERN = /^\/leagues\/\d+\/teams?(\/|$)/;
+
+// TODO: add `to` to each item as its page is created (e.g. '/market',
 // '/matchday', '/stats') and register the route as a child of the protected layout in router/index.tsx.
 const NAV_ITEMS: NavItem[] = [
     {label: 'Inicio', icon: LayoutDashboard, to: '/home'},
-    {label: 'Alineación', icon: Shirt},
+    // /lineup opens the lineup of the last league opened (or the list of leagues)
+    {label: 'Alineación', icon: Shirt, to: '/lineup'},
     {label: 'Mercado', icon: ArrowLeftRight},
     {label: 'Ligas', icon: Trophy, to: '/leagues'},
     {label: 'Jornada', icon: Calendar},
@@ -30,6 +34,9 @@ const ITEM_BASE_CLASSES = 'flex items-center gap-3 rounded-lg px-4 py-3 text-sm'
 export function Sidebar() {
     const {profile} = useAuth();
     const summary = useManagerSummary();
+    const isTeamPage = TEAM_PAGE_PATTERN.test(useLocation().pathname);
+    // The NavLink of "/leagues" also matches the team pages, and the one of "/lineup" never does (it redirects)
+    const isItemActive = (to: string, isActive: boolean) => to === '/lineup' ? isTeamPage : isActive && !isTeamPage;
 
     return (
         <aside className="hidden w-[220px] shrink-0 flex-col gap-8 border-r border-line bg-surface p-6 lg:flex">
@@ -41,14 +48,14 @@ export function Sidebar() {
                         key={label}
                         to={to}
                         className={({isActive}) => `${ITEM_BASE_CLASSES} ${
-                            isActive
+                            isItemActive(to, isActive)
                                 ? 'bg-primary-soft font-bold text-primary'
                                 : 'font-medium text-text hover:bg-surface-raised'
                         }`}
                     >
                         {({isActive}) => (
                             <>
-                                <Icon className={`size-[18px] ${isActive ? 'text-primary' : 'text-muted'}`} aria-hidden/>
+                                <Icon className={`size-[18px] ${isItemActive(to, isActive) ? 'text-primary' : 'text-muted'}`} aria-hidden/>
                                 {label}
                             </>
                         )}

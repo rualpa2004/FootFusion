@@ -1,10 +1,10 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Shirt } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PITCH_ROWS, type PositionGroup } from "../../config/league.constants";
 import type { JoinedLeague, SquadPlayer } from "../../services/league.service";
 import { formatEuros, formatPositionLabel } from "../../utils/format";
-import { PRIMARY_BUTTON_CLASSES } from "../form/button-styles";
+import { PRIMARY_BUTTON_CLASSES, SECONDARY_BUTTON_CLASSES } from "../form/button-styles";
 import { InvitePanel } from "./InvitePanel";
 import { PlayerCard, PlayerCardBack } from "./PlayerCard";
 
@@ -106,10 +106,16 @@ export function SquadReveal({joined, showInvite = false}: Readonly<SquadRevealPr
                         </div>
                     )}
 
-                    <Link to={`/leagues/${joined.league.id}`} className={`${PRIMARY_BUTTON_CLASSES} h-12 px-7 text-sm`}>
-                        Ir a la liga
-                        <ArrowRight className="size-4" aria-hidden/>
-                    </Link>
+                    <div className="flex flex-wrap justify-center gap-3">
+                        <Link to={`/leagues/${joined.league.id}/team`} className={`${PRIMARY_BUTTON_CLASSES} h-12 px-7 text-sm`}>
+                            <Shirt className="size-4" aria-hidden/>
+                            Preparar mi alineación
+                        </Link>
+                        <Link to={`/leagues/${joined.league.id}`} className={`${SECONDARY_BUTTON_CLASSES} h-12 px-5 text-sm`}>
+                            Ir a la liga
+                            <ArrowRight className="size-4" aria-hidden/>
+                        </Link>
+                    </div>
                 </>
             )}
         </section>
