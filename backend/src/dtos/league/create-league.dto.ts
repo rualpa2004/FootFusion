@@ -9,9 +9,7 @@ import {
 } from "../../config/league.constants";
 import { LeagueScoringDTO } from "./league-scoring.dto";
 import { LeagueMultipliersDTO } from "./league-multipliers.dto";
-
-// Removes the spaces at both ends before validating the length
-export const trim = ({value}: {value: unknown}) => typeof value === 'string' ? value.trim() : value;
+import { trim } from "../transforms";
 
 export class CreateLeagueDTO {
 

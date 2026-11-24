@@ -1,7 +1,7 @@
 import { Transform } from "class-transformer";
 import { IsString, Length } from "class-validator";
 import { LEAGUE_NAME_MAX_LENGTH, LEAGUE_NAME_MIN_LENGTH } from "../../config/league.constants";
-import { trim } from "./create-league.dto";
+import { trim } from "../transforms";
 
 export class RenameLeagueDTO {
 
