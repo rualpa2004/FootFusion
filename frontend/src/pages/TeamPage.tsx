@@ -55,7 +55,7 @@ export function TeamPage() {
     };
 
     const boardKey = lineup
-        ? `${lineup.matchday.number}|${lineup.formation}|${lineup.captainId}|${lineup.players.map((p) => `${p.slot}:${p.playerPropertyId}`).join(',')}`
+        ? JSON.stringify([lineup.matchday.number, lineup.formation, lineup.captainId, lineup.players])
         : 'none';
 
     return (

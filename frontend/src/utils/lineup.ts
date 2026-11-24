@@ -29,7 +29,7 @@ export function positionSlots(formation: Formation, position: PositionGroup): st
 
 /** Position a slot is for ('DEF3' -> 'DEF'). */
 export function slotPosition(slot: string): PositionGroup {
-    return slot.replace(/\d+$/, '') as PositionGroup;
+    return slot.replace(/\d/g, '') as PositionGroup;
 }
 
 export function emptyDraft(formation: Formation): LineupDraft {

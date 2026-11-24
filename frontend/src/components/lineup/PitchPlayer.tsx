@@ -41,6 +41,12 @@ function labelColor({player, highlightEmpty}: PitchPlayerProps): string {
     return highlightEmpty ? 'text-[#FF8A82]' : 'text-subtle';
 }
 
+/** Accessible name of a clickable slot: the player (and his captaincy) or the position to fill. */
+function buttonLabel({player, isCaptain}: PitchPlayerProps, slotName: string): string {
+    if (!player) return `${slotName}: elegir jugador`;
+    return isCaptain ? `${player.name} (capitán)` : player.name;
+}
+
 /** A slot of the pitch or of the bench: photo with the club crest and the captain mark, name and market value. */
 export function PitchPlayer(props: Readonly<PitchPlayerProps>) {
     const {player, isCaptain = false, selected = false, onClick, children} = props;
@@ -72,7 +78,7 @@ export function PitchPlayer(props: Readonly<PitchPlayerProps>) {
                 <button
                     type="button"
                     onClick={onClick}
-                    aria-label={player ? `${player.name}${isCaptain ? ' (capitán)' : ''}` : `${name}: elegir jugador`}
+                    aria-label={buttonLabel(props, name)}
                     aria-expanded={children ? selected : undefined}
                     className={`${classes} transition-colors hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-primary`}
                 >
