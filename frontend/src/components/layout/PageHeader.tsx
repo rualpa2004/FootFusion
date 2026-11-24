@@ -1,18 +1,23 @@
 import { Bell } from "lucide-react";
 import type { ReactNode } from "react";
-import { useManagerSummary } from "../../hooks/useManagerSummary";
 import { LogoutButton } from "./LogoutButton";
 
 interface PageHeaderProps {
     title: string;
     subtitle: string;
     titleAside?: ReactNode;
+    /**
+     * Matchday control next to the quick actions, only in the pages that depend on a matchday (e.g. the matchday
+     * selector of the lineup). The other pages (dashboard, leagues) show none.
+     */
+    gameweek?: ReactNode;
 }
 
-/** Title row of protected pages, with the current gameweek and the quick actions. */
-export function PageHeader({title, subtitle, titleAside}: Readonly<PageHeaderProps>) {
-    const {currentGameweek} = useManagerSummary();
+/** Look of the matchday control of the header ("JORNADA 13"). */
+export const GAMEWEEK_BADGE_CLASSES = 'rounded-md bg-surface-raised px-3 py-1.5 text-xs font-bold text-text';
 
+/** Title row of protected pages, with the quick actions and, when the page needs it, its matchday. */
+export function PageHeader({title, subtitle, titleAside, gameweek}: Readonly<PageHeaderProps>) {
     return (
         <header className="flex flex-col gap-4 border-b border-line pb-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 flex-col gap-1">
@@ -24,9 +29,7 @@ export function PageHeader({title, subtitle, titleAside}: Readonly<PageHeaderPro
             </div>
 
             <div className="flex items-center gap-3">
-                <span className="rounded-md bg-surface-raised px-3 py-1.5 text-xs font-bold text-text">
-                    JORNADA {currentGameweek}
-                </span>
+                {gameweek}
                 {/* TODO: notifications. Will open the user's notifications panel (the backend already
                     has a notification entity) and show a badge with the unread count. */}
                 <button

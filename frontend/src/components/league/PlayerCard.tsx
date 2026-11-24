@@ -1,15 +1,8 @@
 import { UserRound } from "lucide-react";
-import type { PositionGroup } from "../../config/league.constants";
 import type { SquadPlayer } from "../../services/league.service";
 import { formatMillions, formatPositionLabel } from "../../utils/format";
 import { BrandLogo } from "../BrandLogo";
-
-const POSITION_COLORS: Record<PositionGroup, string> = {
-    GK: 'text-warning border-warning',
-    DEF: 'text-sky-400 border-sky-400',
-    MID: 'text-primary border-primary',
-    FWD: 'text-[#FF6B6B] border-[#FF6B6B]'
-};
+import { POSITION_COLORS, UNKNOWN_POSITION_COLORS } from "../position-styles";
 
 const CARD_SIZE_CLASSES = 'h-[150px] w-[104px] shrink-0 rounded-xl sm:w-[112px]';
 
@@ -28,7 +21,7 @@ export function PlayerCardBack() {
 //Card of a squad player: position, club crest, name, market value and clause.
 export function PlayerCard({player}: Readonly<{player: SquadPlayer}>) {
     const position = player.positionGroup;
-    const colors = position ? POSITION_COLORS[position] : 'text-muted border-line-strong';
+    const colors = position ? POSITION_COLORS[position] : UNKNOWN_POSITION_COLORS;
 
     return (
         <article

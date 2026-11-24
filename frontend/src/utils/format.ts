@@ -6,6 +6,12 @@ const groupedNumberFormatter = new Intl.NumberFormat('es-ES', {useGrouping: 'alw
 const millionsFormatter = new Intl.NumberFormat('es-ES', {maximumFractionDigits: 2});
 const dateFormatter = new Intl.DateTimeFormat('es-ES', {day: '2-digit', month: '2-digit', year: 'numeric'});
 
+const MATCHDAY_TIME_ZONE = 'Europe/Madrid';
+const weekdayFormatter = new Intl.DateTimeFormat('es-ES', {weekday: 'long', timeZone: MATCHDAY_TIME_ZONE});
+
+const dayMonthFormatter = new Intl.DateTimeFormat('es-ES', {day: 'numeric', month: 'numeric', timeZone: MATCHDAY_TIME_ZONE});
+const timeFormatter = new Intl.DateTimeFormat('es-ES', {hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: MATCHDAY_TIME_ZONE});
+
 const POSITION_LABELS: Record<PlayerPosition, string> = {
     GK: 'POR',
     DEF: 'DEF',
@@ -35,6 +41,18 @@ export function formatSignedPoints(value: number): string {
 /** Date as dd/mm/yyyy. */
 export function formatDate(isoDate: string): string {
     return dateFormatter.format(new Date(isoDate));
+}
+
+/** Day and time of a matchday event in Spanish time: "sábado 22/11 a las 14:00". */
+export function formatMatchdayTime(isoDate: string): string {
+    const date = new Date(isoDate);
+    const parts = Object.fromEntries(dayMonthFormatter.formatToParts(date).map((part) => [part.type, part.value]));
+    const dayMonth = `${parts.day.padStart(2, '0')}/${parts.month.padStart(2, '0')}`;
+    return `${weekdayFormatter.format(date)} ${dayMonth} a las ${timeFormatter.format(date)}`;
+}
+
+export function formatRank(position: number): string {
+    return `${position}.º`;
 }
 
 export function formatPositionLabel(position: PlayerPosition): string {

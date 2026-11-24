@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import { Form, useSubmit } from "react-router-dom";
+import { Form, Link, useSubmit } from "react-router-dom";
 import { MATCHDAY_PARAM } from "../../router/league-loaders";
 import { formatNumber } from "../../utils/format";
 import { PODIUM_SIZE, shouldShowPodium, type Standing } from "../../utils/league";
@@ -105,8 +105,14 @@ export function StandingsPanel({standings, matchdays, selectedMatchday}: Readonl
                                 #{standing.position}
                             </td>
                             <td className="px-3 py-3">
-                                <span className="block font-bold text-white">{managerLabel(standing)}</span>
-                                <span className="text-xs text-muted">{standing.member.teamName}</span>
+                                <Link
+                                    to={standing.isCurrentUser ? 'team' : `teams/${standing.member.teamId}`}
+                                    title={standing.isCurrentUser ? 'Ver mi alineación' : 'Ver su alineación'}
+                                    className="group block"
+                                >
+                                    <span className="block font-bold text-white group-hover:text-primary">{managerLabel(standing)}</span>
+                                    <span className="text-xs text-muted">{standing.member.teamName}</span>
+                                </Link>
                             </td>
                             <td className="rounded-r-lg px-3 py-3 font-display font-extrabold text-white">
                                 {formatNumber(standing.points)} pts

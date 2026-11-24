@@ -11,6 +11,7 @@ import { LeagueDetailPage } from "../pages/LeagueDetailPage";
 import { LeaguesPage } from "../pages/LeaguesPage";
 import { LoginPage } from "../pages/LoginPage";
 import { RegisterPage } from "../pages/RegisterPage";
+import { TeamPage } from "../pages/TeamPage";
 import { completeProfileAction, googleSignInAction, loginAction, logoutAction, registerAction } from "./actions";
 import {
     completeProfileLoader,
@@ -22,6 +23,8 @@ import {
 import { createLeagueAction, joinLeagueAction, renameLeagueAction } from "./league-actions";
 import { createLeagueLoader, joinLinkLoader, leagueDetailLoader, leaguesLoader } from "./league-loaders";
 import { PROTECTED_ROUTE_ID } from "./route-ids";
+import { saveLineupAction } from "./team-actions";
+import { lineupShortcutLoader, teamLoader } from "./team-loaders";
 
 export const router = createBrowserRouter([
     {
@@ -63,7 +66,12 @@ export const router = createBrowserRouter([
                     {path: 'home', element: <HomePage/>, loader: homeLoader},
                     {path: 'leagues', element: <LeaguesPage/>, loader: leaguesLoader, action: joinLeagueAction},
                     {path: 'leagues/new', element: <CreateLeaguePage/>, loader: createLeagueLoader, action: createLeagueAction},
-                    {path: 'leagues/:leagueId', element: <LeagueDetailPage/>, loader: leagueDetailLoader, action: renameLeagueAction}
+                    {path: 'leagues/:leagueId', element: <LeagueDetailPage/>, loader: leagueDetailLoader, action: renameLeagueAction},
+                    // The user's own team, where the lineup is edited, and the team of any other member (read-only)
+                    {path: 'leagues/:leagueId/team', element: <TeamPage/>, loader: teamLoader, action: saveLineupAction},
+                    {path: 'leagues/:leagueId/teams/:teamId', element: <TeamPage/>, loader: teamLoader},
+                    // Menu shortcut without page: redirects to the lineup of the last league opened
+                    {path: 'lineup', loader: lineupShortcutLoader}
                 ]
             }
         ]

@@ -38,7 +38,8 @@ describe('SquadReveal', () => {
     });
 
     it('shows every card at once with "Saltar animación"', async () => {
-        // Expected: the 14 cards, the summary (196.000.000 €) and the "Ir a la liga" link.
+        // Expected: the 14 cards, the summary (196.000.000 €), the "Preparar mi alineación" link to the new team and the
+        // "Ir a la liga" link.
         renderReveal();
 
         await userEvent.click(await screen.findByRole('button', {name: 'Saltar animación'}));
@@ -46,6 +47,7 @@ describe('SquadReveal', () => {
         expect(screen.getAllByRole('article')).toHaveLength(14);
         expect(screen.getByText('196.000.000 €')).toBeInTheDocument();
         expect(screen.getByText('1 POR · 5 DEF · 4 MED · 4 DEL')).toBeInTheDocument();
+        expect(screen.getByRole('link', {name: /Preparar mi alineación/})).toHaveAttribute('href', '/leagues/5/team');
         expect(screen.getByRole('link', {name: /Ir a la liga/})).toHaveAttribute('href', '/leagues/5');
     });
 
