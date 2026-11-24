@@ -3,6 +3,7 @@ import { UserService } from "../../../src/services/user.service";
 import { User, UserRole } from "../../../src/entities/user.entity";
 import { Test, TestingModule } from "@nestjs/testing";
 import { CreateUserDTO } from "../../../src/dtos/user/create-user.dto";
+import { UpdateUserDTO } from "../../../src/dtos/user/update-user.dto";
 import { ConflictException, NotFoundException } from "@nestjs/common";
 
 jest.mock('../../../src/repositories/user.repository', () => ({
@@ -16,7 +17,7 @@ jest.mock('../../../src/entities/user.entity', () => ({
 
 describe('UserService', () => {
     let userService: UserService;
-    let userRepository: jest.Mocked<Pick<UserRepository, 'findByFirebaseUid' | 'create'>>;
+    let userRepository: jest.Mocked<Pick<UserRepository, 'findByFirebaseUid' | 'create' | 'save'>>;
 
     const buildUser = (overrides: Partial<User> = {}): User => ({
         id: 1,
@@ -32,7 +33,8 @@ describe('UserService', () => {
     beforeEach(async () => {
         userRepository = {
             findByFirebaseUid: jest.fn(),
-            create: jest.fn()
+            create: jest.fn(),
+            save: jest.fn().mockImplementation((user: User) => Promise.resolve(user))
         };
 
         const module: TestingModule = await Test.createTestingModule({
@@ -88,4 +90,27 @@ describe('UserService', () => {
             await expect(userService.findByFirebaseUid('uid-123')).rejects.toThrow(NotFoundException);
         })
     })
+
+    describe('updateProfile', () => {
+        const dto: UpdateUserDTO = {name: 'Ana la Mánager'};
+
+        it('saves the new manager name of the authenticated user', async () => {
+            // Expected: the user found by his uid is saved with the new name and returned as a profile.
+            userRepository.findByFirebaseUid.mockResolvedValue(buildUser());
+
+            const result = await userService.updateProfile('uid-123', dto);
+
+            expect(userRepository.findByFirebaseUid).toHaveBeenCalledWith('uid-123');
+            expect(userRepository.save).toHaveBeenCalledWith(expect.objectContaining({id: 1, name: 'Ana la Mánager'}));
+            expect(result).toMatchObject({id: 1, name: 'Ana la Mánager', email: 'ana@gmail.com'});
+        });
+
+        it('throws NotFoundException when the user has no profile', async () => {
+            // Expected: 404 and nothing is saved.
+            userRepository.findByFirebaseUid.mockResolvedValue(null);
+
+            await expect(userService.updateProfile('uid-123', dto)).rejects.toThrow(NotFoundException);
+            expect(userRepository.save).not.toHaveBeenCalled();
+        });
+    });
 });

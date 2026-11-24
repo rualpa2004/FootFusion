@@ -93,7 +93,7 @@ describe('LeagueService', () => {
                 findByUserAndLeague: jest.fn().mockResolvedValue(null),
                 countByLeague: jest.fn().mockResolvedValue(3),
                 findByUserWithLeagues: jest.fn(),
-                countByLeagues: jest.fn(),
+                findRankingsByLeagues: jest.fn(),
                 findByLeague: jest.fn()
             },
             playerProperty: {
@@ -303,23 +303,28 @@ describe('LeagueService', () => {
     });
 
     describe('findMine', () => {
-        it('lists the leagues of the user with their members and whether he owns them', async () => {
-            // Expected: one summary per team, with the competition names, the number of members and isOwner.
+        it('lists the leagues of the user with their members, his rank and whether he owns them', async () => {
+            // Expected: one summary per team, with the competition names, the number of members, the rank of the
+            // user's team (1st of 4 and 8th of 8) and isOwner, from a single ranking query for both leagues.
             repositories.team.findByUserWithLeagues.mockResolvedValue([
                 {id: 50, name: 'Ana FC', budget: 90 * M, totalPoints: 12, leagueId: 1,
                     league: {id: 1, name: 'Mía', ownerId: 7, competitions: [{competitionId: LALIGA.id}]}},
                 {id: 51, name: 'Ana CF', budget: 100 * M, totalPoints: 0, leagueId: 2,
                     league: {id: 2, name: 'Ajena', ownerId: 9, competitions: [{competitionId: CHAMPIONS.id}]}}
             ]);
-            repositories.team.countByLeagues.mockResolvedValue(new Map([[1, 4], [2, 8]]));
+            repositories.team.findRankingsByLeagues.mockResolvedValue(new Map([
+                [1, [50, 60, 61, 62]],
+                [2, [70, 71, 72, 73, 74, 75, 76, 51]]
+            ]));
 
             const result = await service.findMine('uid-7');
 
+            expect(repositories.team.findRankingsByLeagues).toHaveBeenCalledWith([1, 2]);
             expect(result).toHaveLength(2);
-            expect(result[0]).toMatchObject({id: 1, name: 'Mía', membersCount: 4, maxTeams: 8, isOwner: true});
+            expect(result[0]).toMatchObject({id: 1, name: 'Mía', membersCount: 4, maxTeams: 8, isOwner: true, team: {rank: 1}});
             expect(result[0].competitions[0].name).toBe('La Liga');
             expect(result[1]).toMatchObject({id: 2, membersCount: 8, isOwner: false});
-            expect(result[1].team).toEqual({id: 51, name: 'Ana CF', budget: 100 * M, totalPoints: 0});
+            expect(result[1].team).toEqual({id: 51, name: 'Ana CF', budget: 100 * M, totalPoints: 0, rank: 8});
         });
     });
 

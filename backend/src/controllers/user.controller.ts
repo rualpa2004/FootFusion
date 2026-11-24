@@ -1,10 +1,11 @@
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { AllowUnverifiedEmail } from "../auth/allow-unverified-email.decorator";
 import { type AuthenticatedRequest, FirebaseAuthGuard } from "../auth/firebase-auth.guard";
 import { UserService } from "../services/user.service";
 import { CreateUserDTO } from "../dtos/user/create-user.dto";
 import { UserResponseDTO } from "../dtos/user/user-response.dto";
+import { UpdateUserDTO } from "../dtos/user/update-user.dto";
 
 
 
@@ -27,5 +28,13 @@ export class UserController {
     @Get('me')
     getProfile(@Req() req: AuthenticatedRequest): Promise<UserResponseDTO> {
         return this.userService.findByFirebaseUid(req.firebaseUid!);
+    }
+
+    @Patch('me')
+    updateProfile(
+        @Body() dto: UpdateUserDTO,
+        @Req() req: AuthenticatedRequest
+    ): Promise<UserResponseDTO> {
+        return this.userService.updateProfile(req.firebaseUid!, dto);
     }
 }

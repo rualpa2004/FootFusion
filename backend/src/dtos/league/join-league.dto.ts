@@ -1,7 +1,7 @@
 import { Transform } from "class-transformer";
 import { IsOptional, IsString, Length, Matches } from "class-validator";
 import { JOIN_CODE_LENGTH, TEAM_NAME_MAX_LENGTH, TEAM_NAME_MIN_LENGTH } from "../../config/league.constants";
-import { trim } from "./create-league.dto";
+import { trim } from "../transforms";
 
 export class JoinLeagueDTO {
 
