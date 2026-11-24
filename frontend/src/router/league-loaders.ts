@@ -1,6 +1,7 @@
 import { data, redirect, type LoaderFunctionArgs } from "react-router-dom";
 import { ApiError } from "../services/api.client";
 import { getCompetitions, getLeague, getMyLeagues, getPlayedMatchdays } from "../services/league.service";
+import { rememberLastLeague } from "./last-league";
 import { consumePendingJoinCode, savePendingJoinCode } from "./pending-join";
 
 /** URL parameter of the standings matchday selector (/leagues/:id?jornada=5). */
@@ -36,6 +37,8 @@ export async function leagueDetailLoader({params, request}: LoaderFunctionArgs) 
         const [league, matchdays] = await Promise.all([getLeague(leagueId), getPlayedMatchdays(leagueId)]);
         const requestedMatchday = Number(new URL(request.url).searchParams.get(MATCHDAY_PARAM));
         const selectedMatchday = matchdays.includes(requestedMatchday) ? requestedMatchday : null;
+        // The "Alineación" item of the menu opens the lineup of this league from now on
+        rememberLastLeague(leagueId);
         // TODO: when a matchday is selected, load the points of that matchday (scoring branch).
         return {league, matchdays, selectedMatchday};
     } catch (error) {
