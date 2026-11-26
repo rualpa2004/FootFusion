@@ -23,7 +23,7 @@ export const MY_LEAGUE: MyLeague = {
     membersCount: 5,
     maxTeams: 8,
     isOwner: true,
-    team: {id: 21, name: 'Los Galácticos', budget: 100_000_000, totalPoints: 0}
+    team: {id: 21, name: 'Los Galácticos', budget: 100_000_000, totalPoints: 0, rank: 1}
 };
 
 export function member(userId: number, totalPoints: number, overrides: Partial<LeagueMember> = {}): LeagueMember {

@@ -64,10 +64,12 @@ const VALID_LOGIN = {email: 'apex@example.com', password: 'secret123'};
 const VALID_REGISTER = {
     name: 'ApexManager',
     email: 'apex@example.com',
-    password: 'secret123',
-    confirmPassword: 'secret123',
+    password: 'Secret12!',
+    confirmPassword: 'Secret12!',
     acceptTerms: 'on'
 };
+const PASSWORD_POLICY_ERROR = 'La contraseña no cumple todos los requisitos.';
+const MANAGER_NAME_ERROR = 'El nombre de mánager debe tener entre 3 y 30 caracteres.';
 
 describe('loginAction', () => {
     beforeEach(() => {
@@ -217,6 +219,24 @@ describe('registerAction', () => {
         expect(register).not.toHaveBeenCalled();
     });
 
+    it.each([
+        ['shorter than 3 characters once trimmed', '  Al  '],
+        ['longer than 30 characters', 'A'.repeat(31)]
+    ])('rejects a manager name %s', async (_case, name) => {
+        // Expected: fieldErrors.name with the 3-30 limits and register() not called.
+        const result = await registerAction(submit({...VALID_REGISTER, name}));
+
+        expect(result).toEqual({fieldErrors: {name: MANAGER_NAME_ERROR}});
+        expect(register).not.toHaveBeenCalled();
+    });
+
+    it.each([['Abc'], ['A'.repeat(30)]])('accepts a manager name of %s at the length limits', async (name) => {
+        // Expected: names of exactly 3 and 30 characters are valid, so register() is called with them.
+        await registerAction(submit({...VALID_REGISTER, name}));
+
+        expect(register).toHaveBeenCalledWith(name, 'apex@example.com', 'Secret12!');
+    });
+
     it('requires the email', async () => {
         // Expected: fieldErrors.email = "Introduce tu correo electrónico."
         const result = await registerAction(submit({...VALID_REGISTER, email: ''}));
@@ -232,21 +252,24 @@ describe('registerAction', () => {
     });
 
     it.each([
-        ['shorter than 8 characters', 'abc123'],
-        ['without numbers', 'onlyletters'],
-        ['without letters', '12345678']
+        ['shorter than 8 characters', 'Sec12!a'],
+        ['without upper case letters', 'secret12!'],
+        ['without lower case letters', 'SECRET12!'],
+        ['without numbers', 'Secrets!'],
+        ['without special characters', 'Secret123'],
+        ['whose only symbol is not one of the Firebase special characters', 'Secret12='],
+        ['whose only upper case letter is not ASCII (Firebase does not count it)', 'Ñsecret12!']
     ])('rejects a password %s', async (_case, password) => {
-        // Expected: the password rule message in fieldErrors.password.
+        // Expected: the short policy message in fieldErrors.password (the checklist says what is missing).
         const result = await registerAction(submit({...VALID_REGISTER, password, confirmPassword: password}));
 
-        expect(result).toEqual({
-            fieldErrors: {password: 'La contraseña debe tener 8 o más caracteres, con al menos una letra y un número.'}
-        });
+        expect(result).toEqual({fieldErrors: {password: PASSWORD_POLICY_ERROR}});
+        expect(register).not.toHaveBeenCalled();
     });
 
     it('rejects a confirmation that does not match the password', async () => {
         // Expected: fieldErrors.confirmPassword = "Las contraseñas no coinciden."
-        const result = await registerAction(submit({...VALID_REGISTER, confirmPassword: 'secret124'}));
+        const result = await registerAction(submit({...VALID_REGISTER, confirmPassword: 'Secret12?'}));
 
         expect(result).toEqual({fieldErrors: {confirmPassword: 'Las contraseñas no coinciden.'}});
     });
@@ -268,7 +291,7 @@ describe('registerAction', () => {
             fieldErrors: {
                 name: 'Elige un nombre de mánager.',
                 email: 'Introduce tu correo electrónico.',
-                password: 'La contraseña debe tener 8 o más caracteres, con al menos una letra y un número.',
+                password: PASSWORD_POLICY_ERROR,
                 acceptTerms: 'Debes aceptar los términos y la política de privacidad.'
             }
         });
@@ -280,7 +303,7 @@ describe('registerAction', () => {
         // and a 302 redirect to /login without query parameters.
         const result = await registerAction(submit({...VALID_REGISTER, name: '  ApexManager ', email: ' apex@example.com '}));
 
-        expect(register).toHaveBeenCalledWith('ApexManager', 'apex@example.com', 'secret123');
+        expect(register).toHaveBeenCalledWith('ApexManager', 'apex@example.com', 'Secret12!');
         expect(setRegisteredFlash).toHaveBeenCalledWith('a***x@example.com');
         expectRedirect(result, '/login');
     });
@@ -362,6 +385,14 @@ describe('completeProfileAction', () => {
         const result = await completeProfileAction(submit({name: '   '}));
 
         expect(result).toEqual({fieldErrors: {name: 'Elige un nombre de mánager.'}});
+        expect(createProfile).not.toHaveBeenCalled();
+    });
+
+    it('rejects a manager name outside the 3-30 characters', async () => {
+        // Expected: the same limits as the email sign-up, and createProfile() not called.
+        const result = await completeProfileAction(submit({name: 'Al'}));
+
+        expect(result).toEqual({fieldErrors: {name: MANAGER_NAME_ERROR}});
         expect(createProfile).not.toHaveBeenCalled();
     });
 

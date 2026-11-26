@@ -3,6 +3,7 @@ import {
     deleteUser,
     GoogleAuthProvider,
     sendEmailVerification,
+    sendPasswordResetEmail,
     signInWithEmailAndPassword,
     signInWithPopup,
     signOut
@@ -33,6 +34,8 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
     'auth/email-already-in-use': 'Este correo ya está registrado.',
     'auth/invalid-email': 'El correo no tiene un formato válido.',
     'auth/weak-password': 'La contraseña no cumple los requisitos mínimos.',
+    'auth/password-does-not-meet-requirements':
+        'La contraseña no cumple los requisitos de seguridad. Usa 8 o más caracteres con mayúscula, minúscula, número y carácter especial.',
     'auth/invalid-credential': 'Correo o contraseña incorrectos.',
     'auth/too-many-requests': 'Demasiados intentos. Inténtalo más tarde.',
     'auth/network-request-failed': 'Error de red. Comprueba tu conexión.',
@@ -209,6 +212,38 @@ export async function discardIncompleteAccount(): Promise<void> {
 
 export function getProfile(): Promise<UserProfile> {
     return apiRequest<UserProfile>('/users/me')
+}
+
+export async function updateProfile(name: string): Promise<UserProfile> {
+    try {
+        return await apiRequest<UserProfile>('/users/me', {method: 'PATCH', body: JSON.stringify({name})});
+    } catch (error) {
+        throw matchError(error);
+    }
+}
+
+/** How the logged-in user signs in: with a password, or only with Google (no password in FootFusion). */
+export function getSignInMethod(): 'password' | 'google' {
+    const providers = auth.currentUser?.providerData.map((provider) => provider.providerId) ?? [];
+    return providers.includes('password') ? 'password' : 'google';
+}
+
+/**
+ * Sends the Firebase email to choose a new password to the logged-in user and returns that address.
+ * Only who opens the link of the email can change it, so nothing else is asked. The same email will be
+ * used by "¿Olvidaste tu contraseña?" of the login page.
+ */
+export async function sendPasswordChangeEmail(): Promise<string> {
+    try {
+        const email = auth.currentUser?.email;
+        if (!email) {
+            throw new Error('The logged-in user has no email');
+        }
+        await sendPasswordResetEmail(auth, email);
+        return email;
+    } catch (error) {
+        throw matchError(error);
+    }
 }
 
 export function logout(): Promise<void> {

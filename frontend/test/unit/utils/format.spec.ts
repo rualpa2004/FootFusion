@@ -4,6 +4,7 @@ import {
     formatEuros,
     formatMatchdayTime,
     formatMillions,
+    formatMonthYear,
     formatNumber,
     formatPositionLabel,
     formatPrice,
@@ -136,6 +137,13 @@ describe('formatDate', () => {
     it('formats a date as dd/mm/yyyy', () => {
         // Expected: "11/11/2026".
         expect(formatDate('2026-11-11T10:00:00.000Z')).toBe('11/11/2026');
+    });
+});
+
+describe('formatMonthYear', () => {
+    it('writes the month in words and the year', () => {
+        // Expected: "septiembre de 2026" (the sign-up date of the profile).
+        expect(formatMonthYear('2026-09-15T10:00:00.000Z')).toBe('septiembre de 2026');
     });
 });
 

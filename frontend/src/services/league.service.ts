@@ -17,6 +17,11 @@ export interface FantasyTeam {
     totalPoints: number;
 }
 
+/** The user's team in the list of their leagues, with its position in the league ranking. */
+export interface RankedFantasyTeam extends FantasyTeam {
+    rank: number;
+}
+
 /** A league in the list of the user's leagues. */
 export interface MyLeague {
     id: number;
@@ -25,7 +30,7 @@ export interface MyLeague {
     membersCount: number;
     maxTeams: number;
     isOwner: boolean;
-    team: FantasyTeam;
+    team: RankedFantasyTeam;
 }
 
 export interface LeagueMember {

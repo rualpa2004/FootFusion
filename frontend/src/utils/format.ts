@@ -5,6 +5,7 @@ const numberFormatter = new Intl.NumberFormat('es-ES');
 const groupedNumberFormatter = new Intl.NumberFormat('es-ES', {useGrouping: 'always'});
 const millionsFormatter = new Intl.NumberFormat('es-ES', {maximumFractionDigits: 2});
 const dateFormatter = new Intl.DateTimeFormat('es-ES', {day: '2-digit', month: '2-digit', year: 'numeric'});
+const monthYearFormatter = new Intl.DateTimeFormat('es-ES', {month: 'long', year: 'numeric'});
 
 const MATCHDAY_TIME_ZONE = 'Europe/Madrid';
 const weekdayFormatter = new Intl.DateTimeFormat('es-ES', {weekday: 'long', timeZone: MATCHDAY_TIME_ZONE});
@@ -41,6 +42,11 @@ export function formatSignedPoints(value: number): string {
 /** Date as dd/mm/yyyy. */
 export function formatDate(isoDate: string): string {
     return dateFormatter.format(new Date(isoDate));
+}
+
+/** Month and year in words: "septiembre de 2026". */
+export function formatMonthYear(isoDate: string): string {
+    return monthYearFormatter.format(new Date(isoDate));
 }
 
 /** Day and time of a matchday event in Spanish time: "sábado 22/11 a las 14:00". */

@@ -3,6 +3,7 @@ import {
     createUserWithEmailAndPassword,
     deleteUser,
     sendEmailVerification,
+    sendPasswordResetEmail,
     signInWithEmailAndPassword,
     signInWithPopup,
     signOut,
@@ -17,13 +18,16 @@ import {
     EmailNotVerifiedError,
     getAuthErrorMessage,
     getProfile,
+    getSignInMethod,
     hasProfile,
     isProfileMissingError,
     login,
     logout,
     register,
     resendVerificationEmail,
+    sendPasswordChangeEmail,
     signInWithGoogle,
+    updateProfile,
     type UserProfile
 } from '../../../src/services/auth.service';
 
@@ -32,6 +36,7 @@ vi.mock('firebase/auth', () => ({
     createUserWithEmailAndPassword: vi.fn(),
     deleteUser: vi.fn(),
     sendEmailVerification: vi.fn(),
+    sendPasswordResetEmail: vi.fn(),
     signInWithEmailAndPassword: vi.fn(),
     signInWithPopup: vi.fn(),
     signOut: vi.fn(),
@@ -360,6 +365,71 @@ describe('auth.service', () => {
         it('uses the generic message for unknown codes', () => {
             // Expected: "Ha ocurrido un error inesperado."
             expect(getAuthErrorMessage('auth/some-new-error')).toBe('Ha ocurrido un error inesperado.');
+        });
+
+        it('explains the password policy when Firebase rejects the password', () => {
+            // Expected: the requirements in Spanish instead of the generic message.
+            expect(getAuthErrorMessage('auth/password-does-not-meet-requirements')).toBe(
+                'La contraseña no cumple los requisitos de seguridad. Usa 8 o más caracteres con mayúscula, minúscula, número y carácter especial.'
+            );
+        });
+    });
+
+    describe('updateProfile', () => {
+        it('sends the new manager name to PATCH /users/me', async () => {
+            // Expected: PATCH /users/me with {name} and the updated profile returned.
+            vi.mocked(apiRequest).mockResolvedValue({...PROFILE, name: 'Apex United'});
+
+            await expect(updateProfile('Apex United')).resolves.toEqual({...PROFILE, name: 'Apex United'});
+            expect(apiRequest).toHaveBeenCalledWith('/users/me', {method: 'PATCH', body: JSON.stringify({name: 'Apex United'})});
+        });
+
+        it('throws the generic Spanish message when the request fails', async () => {
+            // Expected: an Error with "Ha ocurrido un error inesperado.".
+            vi.mocked(apiRequest).mockRejectedValue(new ApiError(500, 'Internal server error'));
+
+            await expect(updateProfile('Apex United')).rejects.toThrow('Ha ocurrido un error inesperado.');
+        });
+    });
+
+    describe('getSignInMethod', () => {
+        it('is "password" when the account has the email and password provider', () => {
+            // Expected: "password", also when Google is linked too (the account still has a password).
+            mockAuth.currentUser = {providerData: [{providerId: 'google.com'}, {providerId: 'password'}]};
+
+            expect(getSignInMethod()).toBe('password');
+        });
+
+        it('is "google" when the account only signs in with Google', () => {
+            // Expected: "google" (there is no password to change in FootFusion).
+            mockAuth.currentUser = {providerData: [{providerId: 'google.com'}]};
+
+            expect(getSignInMethod()).toBe('google');
+        });
+    });
+
+    describe('sendPasswordChangeEmail', () => {
+        it('sends the Firebase password email to the address of the logged-in user', async () => {
+            // Expected: sendPasswordResetEmail(auth, email) and the address returned.
+            mockAuth.currentUser = {...FIREBASE_USER, email: 'apex@example.com'};
+            vi.mocked(sendPasswordResetEmail).mockResolvedValue(undefined);
+
+            await expect(sendPasswordChangeEmail()).resolves.toBe('apex@example.com');
+            expect(sendPasswordResetEmail).toHaveBeenCalledWith(mockAuth, 'apex@example.com');
+        });
+
+        it('translates the Firebase error', async () => {
+            // Expected: an Error with the Spanish message of auth/too-many-requests.
+            mockAuth.currentUser = {...FIREBASE_USER, email: 'apex@example.com'};
+            vi.mocked(sendPasswordResetEmail).mockRejectedValue(new FirebaseError('auth/too-many-requests', 'Firebase error'));
+
+            await expect(sendPasswordChangeEmail()).rejects.toThrow('Demasiados intentos. Inténtalo más tarde.');
+        });
+
+        it('fails with the generic message when there is no logged-in user', async () => {
+            // Expected: an Error with "Ha ocurrido un error inesperado." and no email sent.
+            await expect(sendPasswordChangeEmail()).rejects.toThrow('Ha ocurrido un error inesperado.');
+            expect(sendPasswordResetEmail).not.toHaveBeenCalled();
         });
     });
 

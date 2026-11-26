@@ -14,12 +14,21 @@ describe('UserAvatar', () => {
         expect(photo).toHaveAttribute('referrerpolicy', 'no-referrer');
     });
 
-    it('shows the generic user icon when there is no photo', () => {
-        // Expected: an element with role "img" named after the user, which is not an <img> and has no initials.
+    it('shows the initials of the name when there is no photo', () => {
+        // Expected: an element with role "img" named after the user, which is not an <img>, with "AM" and no icon.
         render(<UserAvatar name="ApexManager"/>);
 
         const avatar = screen.getByRole('img', {name: 'ApexManager'});
         expect(avatar.tagName).not.toBe('IMG');
+        expect(avatar).toHaveTextContent('AM');
+        expect(avatar.querySelector('svg')).toBeNull();
+    });
+
+    it('shows the generic user icon when the initials are turned off', () => {
+        // Expected: the icon and no text (used when the name is a description, not a person's name).
+        render(<UserAvatar name="Foto de tu cuenta de Google" showInitials={false}/>);
+
+        const avatar = screen.getByRole('img', {name: 'Foto de tu cuenta de Google'});
         expect(avatar.querySelector('svg')).not.toBeNull();
         expect(avatar).toHaveTextContent('');
     });

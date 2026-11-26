@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useManagerSummary } from "../../hooks/useManagerSummary";
 import { formatNumber } from "../../utils/format";
+import { hasProfilePage } from "../../utils/profile";
 import { BrandLogo } from "../BrandLogo";
 import { UserAvatar } from "../UserAvatar";
 import { LogoutButton } from "./LogoutButton";
@@ -30,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const ITEM_BASE_CLASSES = 'flex items-center gap-3 rounded-lg px-4 py-3 text-sm';
+const USER_BLOCK_CLASSES = '-m-1.5 flex min-w-0 flex-1 items-center gap-2.5 rounded-lg p-1.5';
 
 export function Sidebar() {
     const {profile} = useAuth();
@@ -37,6 +39,16 @@ export function Sidebar() {
     const isTeamPage = TEAM_PAGE_PATTERN.test(useLocation().pathname);
     // The NavLink of "/leagues" also matches the team pages, and the one of "/lineup" never does (it redirects)
     const isItemActive = (to: string, isActive: boolean) => to === '/lineup' ? isTeamPage : isActive && !isTeamPage;
+
+    const userSummary = (
+        <>
+            <UserAvatar name={profile.name} photoUrl={profile.profilePhoto}/>
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="truncate text-sm font-semibold text-white">{profile.name}</span>
+                <span className="text-[11px] text-primary">Puesto #{formatNumber(summary.globalRank)}</span>
+            </div>
+        </>
+    );
 
     return (
         <aside className="hidden w-[220px] shrink-0 flex-col gap-8 border-r border-line bg-surface p-6 lg:flex">
@@ -73,13 +85,21 @@ export function Sidebar() {
                 ))}
             </nav>
 
-            {/* TODO: this block will link to the profile page (/profile) once it exists. */}
-            <div className="flex items-center gap-2.5 border-t border-line pt-6">
-                <UserAvatar name={profile.name} photoUrl={profile.profilePhoto}/>
-                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="truncate text-sm font-semibold text-white">{profile.name}</span>
-                    <span className="text-[11px] text-primary">Puesto #{formatNumber(summary.globalRank)}</span>
-                </div>
+            <div className="flex items-center gap-2 border-t border-line pt-6">
+                {hasProfilePage(profile) ? (
+                    <NavLink
+                        to={'/profile'}
+                        title="Mi perfil"
+                        className={({isActive}) => `${USER_BLOCK_CLASSES} transition-colors ${
+                            isActive ? 'bg-primary-soft' : 'hover:bg-surface-raised'
+                        }`}
+                    >
+                        {userSummary}
+                    </NavLink>
+                ) : (
+                    // The administrator has no profile page: the block only shows who is signed in
+                    <div className={USER_BLOCK_CLASSES}>{userSummary}</div>
+                )}
                 <LogoutButton size="sm"/>
             </div>
         </aside>
