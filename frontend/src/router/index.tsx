@@ -2,7 +2,7 @@ import { createBrowserRouter, redirect } from "react-router-dom";
 import { AppLayout } from "../components/layout/AppLayout";
 import { AuthLayout } from "../components/layout/AuthLayout";
 import { LoadingScreen } from "../components/LoadingScreen";
-import { RouteErrorPage } from "../components/RouteErrorPage";
+import { AppErrorPage, RouteErrorPage } from "../components/RouteErrorPage";
 import { CompleteProfilePage } from "../pages/CompleteProfilePage";
 import { CreateLeaguePage } from "../pages/CreateLeaguePage";
 import { HomePage } from "../pages/HomePage";
@@ -10,6 +10,7 @@ import { LandingPage } from "../pages/LandingPage";
 import { LeagueDetailPage } from "../pages/LeagueDetailPage";
 import { LeaguesPage } from "../pages/LeaguesPage";
 import { LoginPage } from "../pages/LoginPage";
+import { ProfilePage } from "../pages/ProfilePage";
 import { RegisterPage } from "../pages/RegisterPage";
 import { TeamPage } from "../pages/TeamPage";
 import { completeProfileAction, googleSignInAction, loginAction, logoutAction, registerAction } from "./actions";
@@ -22,6 +23,8 @@ import {
 } from "./loaders";
 import { createLeagueAction, joinLeagueAction, renameLeagueAction } from "./league-actions";
 import { createLeagueLoader, joinLinkLoader, leagueDetailLoader, leaguesLoader } from "./league-loaders";
+import { profileAction } from "./profile-actions";
+import { profileLoader } from "./profile-loaders";
 import { PROTECTED_ROUTE_ID } from "./route-ids";
 import { saveLineupAction } from "./team-actions";
 import { lineupShortcutLoader, teamLoader } from "./team-loaders";
@@ -63,15 +66,23 @@ export const router = createBrowserRouter([
                 element: <AppLayout/>,
                 loader: protectedLoader,
                 children: [
-                    {path: 'home', element: <HomePage/>, loader: homeLoader},
-                    {path: 'leagues', element: <LeaguesPage/>, loader: leaguesLoader, action: joinLeagueAction},
-                    {path: 'leagues/new', element: <CreateLeaguePage/>, loader: createLeagueLoader, action: createLeagueAction},
-                    {path: 'leagues/:leagueId', element: <LeagueDetailPage/>, loader: leagueDetailLoader, action: renameLeagueAction},
-                    // The user's own team, where the lineup is edited, and the team of any other member (read-only)
-                    {path: 'leagues/:leagueId/team', element: <TeamPage/>, loader: teamLoader, action: saveLineupAction},
-                    {path: 'leagues/:leagueId/teams/:teamId', element: <TeamPage/>, loader: teamLoader},
-                    // Menu shortcut without page: redirects to the lineup of the last league opened
-                    {path: 'lineup', loader: lineupShortcutLoader}
+                    {
+                        // Pathless route without element: errors of the pages are shown inside the layout (with the
+                        // menu). The root ErrorBoundary stays for the public pages and the failures of the layout itself.
+                        ErrorBoundary: AppErrorPage,
+                        children: [
+                            {path: 'home', element: <HomePage/>, loader: homeLoader},
+                            {path: 'leagues', element: <LeaguesPage/>, loader: leaguesLoader, action: joinLeagueAction},
+                            {path: 'leagues/new', element: <CreateLeaguePage/>, loader: createLeagueLoader, action: createLeagueAction},
+                            {path: 'leagues/:leagueId', element: <LeagueDetailPage/>, loader: leagueDetailLoader, action: renameLeagueAction},
+                            // The user's own team, where the lineup is edited, and the team of any other member (read-only)
+                            {path: 'leagues/:leagueId/team', element: <TeamPage/>, loader: teamLoader, action: saveLineupAction},
+                            {path: 'leagues/:leagueId/teams/:teamId', element: <TeamPage/>, loader: teamLoader},
+                            // Menu shortcut without page: redirects to the lineup of the last league opened
+                            {path: 'lineup', loader: lineupShortcutLoader},
+                            {path: 'profile', element: <ProfilePage/>, loader: profileLoader, action: profileAction}
+                        ]
+                    }
                 ]
             }
         ]
