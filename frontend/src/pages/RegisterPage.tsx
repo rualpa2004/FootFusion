@@ -1,15 +1,20 @@
 import { ChevronDown, Mail, User } from "lucide-react";
+import { useState } from "react";
 import { Form, Link, useActionData, useNavigation } from "react-router-dom";
 import { AuthCard } from "../components/auth/AuthCard";
 import { GoogleSignInButton } from "../components/auth/GoogleSignInButton";
 import { FormAlert } from "../components/form/FormAlert";
 import { FormField } from "../components/form/FormField";
 import { PasswordInput } from "../components/form/PasswordInput";
+import { PasswordRequirements } from "../components/form/PasswordRequirements";
 import { SubmitButton } from "../components/form/SubmitButton";
 import { TextInput } from "../components/form/TextInput";
+import { MANAGER_NAME_HINT, MANAGER_NAME_MAX_LENGTH } from "../config/user.constants";
 import type { registerAction } from "../router/actions";
 
 export function RegisterPage() {
+    // Kept in state only to update the requirements list while typing; the form still sends it by its name
+    const [password, setPassword] = useState('');
     const actionData = useActionData<typeof registerAction>();
     const isSubmitting = useNavigation().state === 'submitting';
 
@@ -30,7 +35,7 @@ export function RegisterPage() {
                     {actionData?.formError && <FormAlert variant="error">{actionData.formError}</FormAlert>}
 
                     <div className="flex flex-col gap-3.5 short:gap-2.5">
-                        <FormField label="Nombre de mánager" htmlFor="name" error={fieldErrors?.name}>
+                        <FormField label="Nombre de mánager" htmlFor="name" error={fieldErrors?.name} hint={MANAGER_NAME_HINT}>
                             <TextInput
                                 id="name"
                                 name="name"
@@ -38,6 +43,7 @@ export function RegisterPage() {
                                 icon={User}
                                 placeholder="Elige tu nombre de mánager"
                                 autoComplete="nickname"
+                                maxLength={MANAGER_NAME_MAX_LENGTH}
                                 hasError={Boolean(fieldErrors?.name)}
                             />
                         </FormField>
@@ -52,19 +58,17 @@ export function RegisterPage() {
                                 hasError={Boolean(fieldErrors?.email)}
                             />
                         </FormField>
-                        <FormField
-                            label="Contraseña"
-                            htmlFor="password"
-                            error={fieldErrors?.password}
-                            hint="Usa 8 o más caracteres, incluyendo una letra y un número."
-                        >
+                        <FormField label="Contraseña" htmlFor="password" error={fieldErrors?.password}>
                             <PasswordInput
                                 id="password"
                                 name="password"
                                 placeholder="Crea una contraseña"
                                 autoComplete="new-password"
+                                value={password}
+                                onChange={(event) => setPassword(event.target.value)}
                                 hasError={Boolean(fieldErrors?.password)}
                             />
+                            <PasswordRequirements password={password}/>
                         </FormField>
                         <FormField label="Confirmar contraseña" htmlFor="confirmPassword" error={fieldErrors?.confirmPassword}>
                             <PasswordInput

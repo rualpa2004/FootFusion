@@ -8,6 +8,7 @@ import { FormField } from "../components/form/FormField";
 import { SubmitButton } from "../components/form/SubmitButton";
 import { TextInput } from "../components/form/TextInput";
 import { UserAvatar } from "../components/UserAvatar";
+import { MANAGER_NAME_HINT, MANAGER_NAME_MAX_LENGTH } from "../config/user.constants";
 import { CANCEL_SIGN_UP_INTENT, type completeProfileAction } from "../router/actions";
 import type { completeProfileLoader } from "../router/loaders";
 
@@ -28,7 +29,7 @@ export function CompleteProfilePage() {
         <AuthCard title="Un último paso" subtitle="Elige el nombre con el que te verán tus rivales en las ligas.">
             <div className="flex items-center gap-3 rounded-[10px] border border-line bg-background p-3">
                 <div className="relative shrink-0">
-                    <UserAvatar name="Foto de tu cuenta de Google" photoUrl={photoUrl} className="size-10"/>
+                    <UserAvatar name="Foto de tu cuenta de Google" photoUrl={photoUrl} showInitials={false} className="size-10"/>
                     <span className="absolute -right-0.5 -bottom-0.5 flex size-4 items-center justify-center rounded-full bg-white">
                         <GoogleIcon className="size-2.5"/>
                     </span>
@@ -57,7 +58,7 @@ export function CompleteProfilePage() {
                     label="Nombre de mánager"
                     htmlFor="name"
                     error={fieldErrors?.name}
-                    hint="Podrás cambiarlo más adelante desde tu perfil."
+                    hint={`${MANAGER_NAME_HINT} Podrás cambiarlo más adelante desde tu perfil.`}
                 >
                     <TextInput
                         id="name"
@@ -66,6 +67,7 @@ export function CompleteProfilePage() {
                         icon={User}
                         placeholder="Elige tu nombre de mánager"
                         autoComplete="nickname"
+                        maxLength={MANAGER_NAME_MAX_LENGTH}
                         hasError={Boolean(fieldErrors?.name)}
                     />
                 </FormField>

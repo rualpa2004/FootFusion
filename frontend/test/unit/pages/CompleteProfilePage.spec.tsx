@@ -48,11 +48,12 @@ describe('CompleteProfilePage', () => {
     });
 
     it('starts with an empty manager name and shows the hint and the legal notice', async () => {
-        // Expected: empty input, "Podrás cambiarlo más adelante desde tu perfil." and the terms notice.
+        // Expected: empty input limited to 30 characters, the 3-30 limits with "Podrás cambiarlo más adelante desde tu perfil." and the terms notice.
         renderCompleteProfilePage();
 
         expect(await screen.findByLabelText('Nombre de mánager')).toHaveValue('');
-        expect(screen.getByText('Podrás cambiarlo más adelante desde tu perfil.')).toBeInTheDocument();
+        expect(screen.getByLabelText('Nombre de mánager')).toHaveAttribute('maxlength', '30');
+        expect(screen.getByText('Entre 3 y 30 caracteres. Podrás cambiarlo más adelante desde tu perfil.')).toBeInTheDocument();
         expect(screen.getByText(/Al continuar aceptas/)).toBeInTheDocument();
     });
 
