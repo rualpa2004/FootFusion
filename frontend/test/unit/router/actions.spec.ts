@@ -223,7 +223,7 @@ describe('registerAction', () => {
         ['shorter than 3 characters once trimmed', '  Al  '],
         ['longer than 30 characters', 'A'.repeat(31)]
     ])('rejects a manager name %s', async (_case, name) => {
-        // Expected: fieldErrors.name with the 3-30 limits (the same as the backend) and register() not called.
+        // Expected: fieldErrors.name with the 3-30 limits and register() not called.
         const result = await registerAction(submit({...VALID_REGISTER, name}));
 
         expect(result).toEqual({fieldErrors: {name: MANAGER_NAME_ERROR}});
@@ -255,7 +255,7 @@ describe('registerAction', () => {
         ['shorter than 8 characters', 'Sec12!a'],
         ['without upper case letters', 'secret12!'],
         ['without lower case letters', 'SECRET12!'],
-        ['without numbers', 'Secretos!'],
+        ['without numbers', 'Secrets!'],
         ['without special characters', 'Secret123'],
         ['whose only symbol is not one of the Firebase special characters', 'Secret12='],
         ['whose only upper case letter is not ASCII (Firebase does not count it)', 'Ñsecret12!']

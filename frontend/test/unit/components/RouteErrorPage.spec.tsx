@@ -4,6 +4,9 @@ import { createMemoryRouter, data, RouterProvider, type LoaderFunction } from 'r
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppErrorPage, RouteErrorPage } from '../../../src/components/RouteErrorPage';
 
+//Explained in CreateLeaguePage.spec.tsx
+vi.mock('../../../src/config/firebase', () => ({auth: {currentUser: null, authStateReady: async () => {}}}));
+
 /** A page whose loader runs `loader`, with the in-app or the root error page as its ErrorBoundary. */
 function renderFailingPage(loader: LoaderFunction, ErrorBoundary = AppErrorPage) {
     const router = createMemoryRouter(

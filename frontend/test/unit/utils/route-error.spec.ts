@@ -1,6 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ApiError } from '../../../src/services/api.client';
 import { describeRouteError } from '../../../src/utils/route-error';
+
+//Explained in CreateLeaguePage.spec.tsx
+vi.mock('../../../src/config/firebase', () => ({auth: {currentUser: null, authStateReady: async () => {}}}));
 
 /** The error useRouteError() gives when a loader throws data(message, {status}) (an ErrorResponse). */
 function routeResponse(message: string, status: number) {
