@@ -1,7 +1,7 @@
 export const PASSWORD_MIN_LENGTH = 8;
 
 // Same checks as Firebase: only the ASCII letters and digits count and only these characters are "special" (other symbols and spaces do not count).
-const SPECIAL_CHARACTERS = `^$*.[]{}()?"!@#%&/\\,><':;|_~`;
+const SPECIAL_CHARACTERS = String.raw`^$*.[]{}()?"!@#%&/\,><':;|_~`;
 
 export interface PasswordRequirement {
     id: 'length' | 'uppercase' | 'lowercase' | 'number' | 'special';
