@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { BrandLogo } from "../BrandLogo";
 import { UserAvatar } from "../UserAvatar";
@@ -19,7 +19,13 @@ export function AppLayout() {
                 <div className="flex items-center justify-between border-b border-line bg-surface px-4 py-3 lg:hidden">
                     <BrandLogo variant="circle" showName/>
                     <div className="flex items-center gap-3">
-                        <UserAvatar name={profile.name} photoUrl={profile.profilePhoto} className="size-8"/>
+                        <NavLink
+                            to={'/profile'}
+                            aria-label="Mi perfil"
+                            className={({isActive}) => `rounded-full ${isActive ? 'ring-2 ring-primary' : ''}`}
+                        >
+                            <UserAvatar name={profile.name} photoUrl={profile.profilePhoto} className="size-8"/>
+                        </NavLink>
                         <LogoutButton size="sm"/>
                     </div>
                 </div>

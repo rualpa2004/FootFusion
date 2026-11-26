@@ -73,13 +73,20 @@ export function Sidebar() {
                 ))}
             </nav>
 
-            {/* TODO: this block will link to the profile page (/profile) once it exists. */}
-            <div className="flex items-center gap-2.5 border-t border-line pt-6">
-                <UserAvatar name={profile.name} photoUrl={profile.profilePhoto}/>
-                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="truncate text-sm font-semibold text-white">{profile.name}</span>
-                    <span className="text-[11px] text-primary">Puesto #{formatNumber(summary.globalRank)}</span>
-                </div>
+            <div className="flex items-center gap-2 border-t border-line pt-6">
+                <NavLink
+                    to={'/profile'}
+                    title="Mi perfil"
+                    className={({isActive}) => `-m-1.5 flex min-w-0 flex-1 items-center gap-2.5 rounded-lg p-1.5 transition-colors ${
+                        isActive ? 'bg-primary-soft' : 'hover:bg-surface-raised'
+                    }`}
+                >
+                    <UserAvatar name={profile.name} photoUrl={profile.profilePhoto}/>
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <span className="truncate text-sm font-semibold text-white">{profile.name}</span>
+                        <span className="text-[11px] text-primary">Puesto #{formatNumber(summary.globalRank)}</span>
+                    </div>
+                </NavLink>
                 <LogoutButton size="sm"/>
             </div>
         </aside>
