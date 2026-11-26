@@ -1,4 +1,4 @@
-import { useLoaderData } from "react-router-dom";
+import { Navigate, useLoaderData } from "react-router-dom";
 import { PageHeader } from "../components/layout/PageHeader";
 import { AccountPanel } from "../components/profile/AccountPanel";
 import { ProfileIdentity } from "../components/profile/ProfileIdentity";
@@ -6,11 +6,16 @@ import { ProfileLeagues } from "../components/profile/ProfileLeagues";
 import { ProfileStats } from "../components/profile/ProfileStats";
 import { useAuth } from "../hooks/useAuth";
 import type { profileLoader } from "../router/profile-loaders";
-import { computeProfileStats } from "../utils/profile";
+import { computeProfileStats, hasProfilePage } from "../utils/profile";
 
 export function ProfilePage() {
     const {profile} = useAuth();
     const {leagues, signInMethod} = useLoaderData<typeof profileLoader>();
+
+    // The administrator has no manager profile (the menu does not link here): typing the URL goes to the start page
+    if (!hasProfilePage(profile)) {
+        return <Navigate to="/home" replace/>;
+    }
 
     return (
         <>

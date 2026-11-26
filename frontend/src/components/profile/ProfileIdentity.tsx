@@ -93,9 +93,6 @@ export function ProfileIdentity({profile}: Readonly<{profile: UserProfile}>) {
                 ) : (
                     <div className="flex flex-wrap items-center gap-3">
                         <h2 className="min-w-0 font-display text-2xl font-extrabold break-words text-white">{shownName}</h2>
-                        {profile.role === 'ADMIN' && (
-                            <span className="rounded-md bg-warning/10 px-2 py-0.5 text-[11px] font-bold text-warning">ADMIN</span>
-                        )}
                         <button type="button" onClick={startEditing} className={`${SECONDARY_BUTTON_CLASSES} h-8 text-xs`}>
                             <Pencil className="size-3.5" aria-hidden/>Editar nombre
                         </button>

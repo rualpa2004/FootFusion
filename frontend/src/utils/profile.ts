@@ -1,3 +1,4 @@
+import type { UserProfile } from "../services/auth.service";
 import type { MyLeague } from "../services/league.service";
 
 export interface ProfileStats {
@@ -34,4 +35,12 @@ export function computeProfileStats(leagues: MyLeague[]): ProfileStats {
         totalPoints: leagues.reduce((total, league) => total + league.team.totalPoints, 0),
         bestRank
     };
+}
+
+/**
+ * Whether the user has the "Mi perfil" page. The administrator manages the application (bans, competitions,
+ * matchdays) instead of playing, so the page of a manager is not theirs.
+ */
+export function hasProfilePage(profile: Pick<UserProfile, 'role'>): boolean {
+    return profile.role !== 'ADMIN';
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { MyLeague } from '../../../src/services/league.service';
-import { computeProfileStats, getInitials } from '../../../src/utils/profile';
+import { computeProfileStats, getInitials, hasProfilePage } from '../../../src/utils/profile';
 import { MY_LEAGUE } from '../../helpers/league-fixtures';
 
 function league(id: number, name: string, totalPoints: number, rank: number): MyLeague {
@@ -44,5 +44,13 @@ describe('computeProfileStats', () => {
     it('has no best position without leagues', () => {
         // Expected: 0 leagues, 0 points and bestRank null.
         expect(computeProfileStats([])).toEqual({leaguesCount: 0, totalPoints: 0, bestRank: null});
+    });
+});
+
+describe('hasProfilePage', () => {
+    it('gives the profile page to managers but not to the administrator', () => {
+        // Expected: true for USER, false for ADMIN.
+        expect(hasProfilePage({role: 'USER'})).toBe(true);
+        expect(hasProfilePage({role: 'ADMIN'})).toBe(false);
     });
 });

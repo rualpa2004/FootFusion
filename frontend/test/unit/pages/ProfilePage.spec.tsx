@@ -1,7 +1,7 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ActionFunction } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NAME_UPDATED_NOTICE_MS } from '../../../src/components/profile/ProfileIdentity';
 import { ProfilePage } from '../../../src/pages/ProfilePage';
 import type { UserProfile } from '../../../src/services/auth.service';
@@ -19,8 +19,9 @@ const PROFILE: UserProfile = {
     role: 'USER',
     registerDate: '2026-09-15T10:00:00.000Z'
 };
-// The profile comes from protectedLoader in the app; here it is fixed
-vi.mock('../../../src/hooks/useAuth', () => ({useAuth: () => ({profile: PROFILE})}));
+// The profile comes from protectedLoader in the app; here it is fixed (each test starts with PROFILE)
+const auth = vi.hoisted(() => ({profile: null as UserProfile | null}));
+vi.mock('../../../src/hooks/useAuth', () => ({useAuth: () => ({profile: auth.profile})}));
 
 function league(id: number, name: string, teamName: string, totalPoints: number, rank: number, membersCount: number): MyLeague {
     return {...MY_LEAGUE, id, name, membersCount, team: {...MY_LEAGUE.team, id: 100 + id, name: teamName, totalPoints, rank}};
@@ -53,6 +54,19 @@ function recordingAction(result: unknown) {
 }
 
 describe('ProfilePage', () => {
+    beforeEach(() => {
+        auth.profile = PROFILE;
+    });
+
+    it('sends the administrator to the start page, as they have no manager profile', async () => {
+        // Expected: the home page instead of "Mi perfil".
+        auth.profile = {...PROFILE, role: 'ADMIN'};
+        renderProfilePage();
+
+        expect(await screen.findByText('Home page')).toBeInTheDocument();
+        expect(screen.queryByRole('heading', {name: 'Mi perfil'})).not.toBeInTheDocument();
+    });
+
     it('shows the identity of the user with the initials as avatar', async () => {
         // Expected: the name as heading, "AM" in the avatar, the email and "En FootFusion desde septiembre de 2026".
         renderProfilePage();
